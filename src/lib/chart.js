@@ -2,8 +2,9 @@ import ChartComponent from './base/ChartComponent';
 import d3 from './utils/d3';
 import population from './pop.json';
 import * as topojson from 'topojson-client';
-
+import { mintChocolateCaraCara } from '@reuters-graphics/style-color/dist/diverging';
 import AtlasMetadataClient from '@reuters-graphics/graphics-atlas-client';
+
 const client = new AtlasMetadataClient();
 // import topology from '@reuters-graphics/graphics-atlas-client/topojson/global.110m.json';
 
@@ -18,22 +19,21 @@ class GlobalRateMap extends ChartComponent {
   };
 
   draw() {
-
     const data = this.data()[0];
     const props = this.props();
     const node = this.selection().node();
-    const margin = {left: 60, right: 50, top: 10, bottom: 30}
     const { width } = node.getBoundingClientRect();
 
-    const gradients = [ {
+    const gradients = [{
       color: props.fill,
       start_opacity: 1,
       mid_opacity: 0.8,
-      stop_opacity: 0,
-      id: 'up' },
+      stop_opacity: .2,
+      id: 'up'
+    },
     {
       color: props.low,
-      start_opacity: 0,
+      start_opacity: .2,
       mid_opacity: 0.8,
       stop_opacity: 1,
       id: 'down',
@@ -41,12 +41,13 @@ class GlobalRateMap extends ChartComponent {
 
     const transition = d3.transition()
       .duration(750);
-    const weeklyChange = {};
-    const weeklyArray = data.latestWeeklyAvgs.cases;
-    const casesArray = data.latestTotals.cases;
-    const maxCasesArray={};
 
-    let maxChange = 0
+    const weeklyChange = {};
+    const weeklyArray = data.latestWeeklyAvgs.deaths;
+    const casesArray = data.latestTotals.deaths;
+    const maxCasesArray = {};
+
+    let maxChange = 0;
     let minChange = 0;
     for (var key of Object.keys(weeklyArray)) {
       if (key!='EH' && key!='HR') {
@@ -61,6 +62,7 @@ class GlobalRateMap extends ChartComponent {
         }
       }
     };
+
     let maxCases = 0;
     for (var key of Object.keys(casesArray)) {
       if (key != 'EH' && key != 'HR') {
@@ -69,10 +71,15 @@ class GlobalRateMap extends ChartComponent {
       }
     }
 
-    let useMax = d3.max([maxChange,minChange*-1])
-    let scaleY = d3.scaleLinear().range([0,100]).domain([0,useMax])
-    let scaleX = d3.scaleLinear().range([2,25]).domain([0,maxCases])
+    const color = d3.scaleLinear()
+      .domain([-50, 0, 50])
+      .range(['green', 'white', 'red']);
 
+    console.log(minChange, maxChange)
+    let useMax = d3.max([maxChange, minChange*-1])
+    let scaleY = d3.scaleLinear().range([1,100]).domain([0,maxCases])
+    let scaleX = d3.scaleLinear().range([2,25]).domain([0,maxCases])
+    let angle = d3.scaleLinear().range([180,90,10,0]).domain([minChange,0,100,maxChange])
     const svg = this.selection()
       .appendSelect('svg') // see docs in ./utils/d3.js
       .attr('width', width)
@@ -123,15 +130,8 @@ class GlobalRateMap extends ChartComponent {
       .append('path')
       .attr('class', d => 'c-' + d.properties.slug + ' level-0')
       // .style('fill', function(d) {
-      //   let value = scaleY(weeklyChange[d.properties.slug]);
-      //   if (value === 0) {
-      //     return 'gray'
-      //   } else if (value > 0) {
-      //     return 'steelblue'
-      //   } else if (value < 0) {
-      //     return 'black'
-      //   }
-
+      //   const value = scaleY(weeklyChange[d.properties.slug]);
+      //   return color(value)
       // })
       .attr('d', path);
 
@@ -141,29 +141,41 @@ class GlobalRateMap extends ChartComponent {
       .enter()
       .append('path')
       .attr('class', d => d.properties.slug + ' centroids')
-      .attr('d', function(d) {
+      .attr('transform',function(d) {
+        let value = angle(weeklyChange[d.properties.slug]);
         let obj = projection(d.properties.centroid);
-        let value;
-        let xVal = scaleX(maxCasesArray[d.properties.slug]);
-        // console.log(weeklyChange[d.properties.slug],scaleY(weeklyChange[d.properties.slug]))
-        if (weeklyChange[d.properties.slug] < 0) {
-          value = scaleY(weeklyChange[d.properties.slug]);
-        } else {
-          value = scaleY(weeklyChange[d.properties.slug]);
-        }
-        // console.log(value);
-        if (value) {
-          return 'M' + (obj[0] - xVal) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + xVal) + ' ' + obj[1] + ' '
-        } else {
-          console.log(d.properties.slug)
+        if (value){
+          return 'translate('+obj[0]+','+obj[1]+') rotate('+value+' 0 0)'
         }
       })
-      .attr('stroke', d => weeklyChange[d.properties.slug] >= 0 ? props.fill : props.low)
-      .attr('stroke-width', 0.5)
-      .attr('fill', d => weeklyChange[d.properties.slug] >= 0 ? 'url(#up)' : 'url(#down)')
+      .attr('d', function(d) {
+        let value;
+        let xVal = 2;
+        // console.log(weeklyChange[d.properties.slug],scaleY(weeklyChange[d.properties.slug]))
+        value = scaleY(maxCasesArray[d.properties.slug]);
+        // console.log(value);
+        if (value) {
+          return 'M' + (0 - xVal) + ' ' + 0 + ' L' + 0 + ' ' + (0 - value)+ ' L' + (0 + xVal) + ' ' + 0 + ' '
+        }
+      })
+      // .attr('fill','none')
+      // .attr('stroke', 'black')
+      .attr('fill', d => colorReturn(weeklyChange[d.properties.slug]))
+      .attr('stroke-width', 1)
+      // .attr('fill', d => weeklyChange[d.properties.slug] >= 0 ? 'url(#up)' : 'url(#down)')
       .style('opacity', 0.7);
 
     return this;
+  }
+}
+
+function colorReturn (d){
+  if (d>=-0.5 && d<=0.5){
+    return '#fce587'
+  } else if (d>.5){
+    return '#de2d26'
+  } else if (d<-.5){
+    return '#31a354'
   }
 }
 
