@@ -122,46 +122,45 @@ class GlobalRateMap extends ChartComponent {
       .enter()
       .append('path')
       .attr('class', d => 'c-' + d.properties.slug + ' level-0')
-      // .style('fill', function(d) {
-      //   let value = scaleY(weeklyChange[d.properties.slug]);
-      //   if (value === 0) {
-      //     return 'gray'
-      //   } else if (value > 0) {
-      //     return 'steelblue'
-      //   } else if (value < 0) {
-      //     return 'black'
-      //   }
-
-      // })
-      .attr('d', path);
-
-    g.appendSelect('g.centroids')
-      .selectAll('.centroid')
-      .data(countries.features)
-      .enter()
-      .append('path')
-      .attr('class', d => d.properties.slug + ' centroids')
-      .attr('d', function(d) {
-        let obj = projection(d.properties.centroid);
-        let value;
-        let xVal = scaleX(maxCasesArray[d.properties.slug]);
-        // console.log(weeklyChange[d.properties.slug],scaleY(weeklyChange[d.properties.slug]))
-        if (weeklyChange[d.properties.slug] < 0) {
-          value = scaleY(weeklyChange[d.properties.slug]);
-        } else {
-          value = scaleY(weeklyChange[d.properties.slug]);
-        }
-        // console.log(value);
-        if (value) {
-          return 'M' + (obj[0] - xVal) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + xVal) + ' ' + obj[1] + ' '
-        } else {
-          console.log(d.properties.slug)
+      .style('fill', function(d) {
+        let value = (weeklyChange[d.properties.slug]);
+        if (value === 0) {
+          return 'gray'
+        } else if (value > 0) {
+          return 'steelblue'
+        } else if (value < 0) {
+          return 'black'
         }
       })
-      .attr('stroke', d => weeklyChange[d.properties.slug] >= 0 ? props.fill : props.low)
-      .attr('stroke-width', 0.5)
-      .attr('fill', d => weeklyChange[d.properties.slug] >= 0 ? 'url(#up)' : 'url(#down)')
-      .style('opacity', 0.7);
+      .attr('d', path);
+
+    // g.appendSelect('g.centroids')
+    //   .selectAll('.centroid')
+    //   .data(countries.features)
+    //   .enter()
+    //   .append('path')
+    //   .attr('class', d => d.properties.slug + ' centroids')
+    //   .attr('d', function(d) {
+    //     let obj = projection(d.properties.centroid);
+    //     let value;
+    //     let xVal = scaleX(maxCasesArray[d.properties.slug]);
+    //     // console.log(weeklyChange[d.properties.slug],scaleY(weeklyChange[d.properties.slug]))
+    //     if (weeklyChange[d.properties.slug] < 0) {
+    //       value = scaleY(weeklyChange[d.properties.slug]);
+    //     } else {
+    //       value = scaleY(weeklyChange[d.properties.slug]);
+    //     }
+    //     // console.log(value);
+    //     if (value) {
+    //       return 'M' + (obj[0] - xVal) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + xVal) + ' ' + obj[1] + ' '
+    //     } else {
+    //       console.log(d.properties.slug)
+    //     }
+    //   })
+    //   .attr('stroke', d => weeklyChange[d.properties.slug] >= 0 ? props.fill : props.low)
+    //   .attr('stroke-width', 0.5)
+    //   .attr('fill', d => weeklyChange[d.properties.slug] >= 0 ? 'url(#up)' : 'url(#down)')
+    //   .style('opacity', 0.7);
 
     return this;
   }
