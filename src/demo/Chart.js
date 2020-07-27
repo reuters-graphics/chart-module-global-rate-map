@@ -4,7 +4,14 @@ import React from 'react';
 import debounce from 'lodash/debounce';
 import defaultData from './defaultData.json';
 import defaultGeo from './topo.json';
-
+const selectData = defaultData.latestWeeklyAvgs.cases;
+const newData = []
+for (var key of Object.keys(selectData)) {
+  newData.push({
+    key: key,
+    values: selectData[key]
+  })
+};
 class ChartComponent extends React.Component {
   state = { width: '' };
   chartContainer = React.createRef();
@@ -19,7 +26,7 @@ class ChartComponent extends React.Component {
     // Use our chart module.
     this.chart
       .selection(this.chartContainer.current)
-      .data([defaultData])
+      .data(newData)
       .props({ geo: defaultGeo })
       .draw();
 
