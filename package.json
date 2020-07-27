@@ -1,11 +1,11 @@
 {
-  "name": "@reuters-graphics/chart-module-globalratemap",
+  "name": "@reuters-graphics/chart-module-global-rate-map",
   "version": "0.0.1",
   "main": "dist/index.js",
   "author": "Jon McClure <jon.r.mcclure@gmail.com>",
   "license": "MIT",
   "private": false,
-  "repository": "github:reuters-graphics/<your-repo-here>",
+  "repository": "github:reuters-graphics/chart-module-global-rate-map",
   "scripts": {
     "start": "next",
     "build": "next build && next export -o docs && rollup -c rollup.config.js"
