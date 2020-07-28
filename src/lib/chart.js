@@ -14,33 +14,33 @@ class GlobalRateMap extends ChartComponent {
     spike_color: '#eec331',
     height: 500,
     geo: false,
+    spike_stroke_width: 0.2
   };
 
   draw() {
     const data = this.data();
     const props = this.props();
     const node = this.selection().node();
-    console.log(data)
     const { width } = node.getBoundingClientRect();
 
     const gradients = [ {
       color: '#de2d26',
-      start_opacity: .8,
+      start_opacity: 0.8,
       mid_opacity: 0.1,
       stop_opacity: 0,
       id: 'red'
-    },{
+    }, {
       color: '#f68e26',
-      start_opacity: .8,
+      start_opacity: 0.8,
       mid_opacity: 0.1,
       stop_opacity: 0,
       id: 'orange',
-    },{
-      color:  'rgba(255,255,255,.8)',
-      start_opacity: .8,
+    }, {
+      color: 'rgba(255,255,255,0.8)',
+      start_opacity: 0.8,
       mid_opacity: 0.1,
       stop_opacity: 0,
-      id:'white',
+      id: 'white',
     }];
 
     const transition = d3.transition()
@@ -67,7 +67,7 @@ class GlobalRateMap extends ChartComponent {
       .attr('y1', '0%')
       .attr('y2', '95%')
       .each(function(d) {
-        let el = d3.select(this);
+        const el = d3.select(this);
         el.append('stop')
           .attr('offset', 0+'%')
           .style('stop-color', d.color)
@@ -84,74 +84,82 @@ class GlobalRateMap extends ChartComponent {
           .style('stop-opacity', d.stop_opacity);
       });
 
-    let projection = d3.geoNaturalEarth1();
-    let countries = topojson.feature(props.geo, props.geo.objects.countries);
-    let disputed = topojson.feature(props.geo, props.geo.objects.disputedBoundaries);
+    const projection = d3.geoNaturalEarth1();
+    const countries = topojson.feature(props.geo, props.geo.objects.countries);
+    const disputed = topojson.feature(props.geo, props.geo.objects.disputedBoundaries);
 
     projection.fitSize([width, props.height], countries);
-    let path = d3.geoPath().projection(projection);
+    const path = d3.geoPath().projection(projection);
 
-    g.appendSelect('g.world')
-      .selectAll('path')
-      .data(countries.features)
+    const countryGroups = g.selectAll('g.country')
+      .data(countries.features.filter(d => d.properties.slug != 'antarctica'))
       .enter()
-      .append('path')
-      .attr('class', d => 'c-' + d.properties.slug + ' level-0')
-      .style('stroke',props.map_stroke_color)
-      .style('stroke-width',props.map_stroke_width)
-      // .style('fill', function(d) {
-      //   let value = scaleY(weeklyChange[d.properties.slug]);
-      //   if (value === 0) {
-      //     return 'gray'
-      //   } else if (value > 0) {
-      //     return 'steelblue'
-      //   } else if (value < 0) {
-      //     return 'black'
-      //   }
+      .append('g')
+      .attr('class','country');
 
-      // })
+    countryGroups.append('path')
+      .attr('class', d => 'c-' + d.properties.slug + ' level-0')
+      .style('stroke', props.map_stroke_color)
+      .style('stroke-width', props.map_stroke_width)
       .attr('d', path);
 
-    g.appendSelect('g.centroids')
-      .selectAll('.centroid')
-      .data(countries.features)
-      .enter()
+    countryGroups
       .append('path')
-      .attr('class', d => d.properties.slug + ' centroids')
+      .attr('class', d => d.properties.slug + ' centroid')
       .attr('d', function(d) {
-        let obj = projection(d.properties.centroid);
-        let o = data.filter(e=>d.properties.isoAlpha2===e.key)[0]
-        if (o){
-          let value = scaleY(o.value);
-           return 'M' + (obj[0] - xVal) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + xVal) + ' ' + obj[1] + ' '
+        const obj = projection(d.properties.centroid);
+        const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
+        if (o) {
+          const value = scaleY(o.value);
+          return 'M' + (obj[0] - xVal) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + xVal) + ' ' + obj[1] + ' ';
         }
       })
       .style('fill', function(d) {
-        let o = data.filter(e=>d.properties.isoAlpha2===e.key)[0]
-        if (o){
-          if (o.value>=.9){
-            return 'url("#red")'
-          } else if (o.value>=.75){
-            return 'url("#orange")'
+        const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
+        if (o) {
+          if (o.value >= 0.9) {
+            return 'url("#red")';
+          } else if (o.value >= 0.75) {
+            return 'url("#orange")';
           } else {
-            return 'url("#white")'
+            return 'url("#white")';
           }
         }
       })
       .style('stroke', function(d) {
-        let o = data.filter(e=>d.properties.isoAlpha2===e.key)[0]
-        if (o){
-          if (o.value>=.9){
-            return '#de2d26'
-          } else if (o.value>=.75){
-            return '#f68e26'
+        const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
+        if (o) {
+          if (o.value >= 0.9) {
+            return '#de2d26';
+          } else if (o.value >= 0.75) {
+            return '#f68e26';
           } else {
-            return 'rgba(255,255,255,.8)'
+            return 'rgba(255,255,255,0.8)';
           }
         }
       })
-      .style('stroke-width',.5)
+      .style('stroke-width', props.spike_stroke_width);
 
+    countryGroups.on('mouseover',tipOn)
+    .on('mouseout',tipOff)
+
+    function tipOn(obj){
+      const sel = d3.select(this)
+      sel.selectAll('.level-0')
+        .style('stroke-width', 1)
+
+      sel.select('.centroid')
+        .style('stroke-width', 1)
+    }
+
+    function tipOff(obj){
+      const sel = d3.select(this)
+      sel.selectAll('.level-0')
+        .style('stroke-width', props.map_stroke_width)
+
+      sel.select('.centroid')
+        .style('stroke-width', props.spike_stroke_width)
+    }
     return this;
   }
 }
