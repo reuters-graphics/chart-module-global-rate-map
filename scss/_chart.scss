@@ -1,9 +1,9 @@
+$half-white: rgba(255, 255, 255, 0.2);
+
 #{$GlobalRateMap-container} {
 
   /* Write your chart styles here */
   .level-0{
   	fill: none;
-  	stroke: #dadada;
-  	stroke-width: .7;
   }
 }

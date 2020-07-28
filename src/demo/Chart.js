@@ -5,6 +5,14 @@ import debounce from 'lodash/debounce';
 import defaultData from './defaultData.json';
 import defaultGeo from './topo.json';
 
+const newData = []
+for (var key of Object.keys(defaultData.distributionRanks.cases)) {
+  newData.push({
+    'key': key,
+    'value': defaultData.distributionRanks.cases[key],
+  });
+}
+
 class ChartComponent extends React.Component {
   state = { width: '' };
   chartContainer = React.createRef();
@@ -19,7 +27,7 @@ class ChartComponent extends React.Component {
     // Use our chart module.
     this.chart
       .selection(this.chartContainer.current)
-      .data([defaultData])
+      .data(newData)
       .props({ geo: defaultGeo })
       .draw();
 

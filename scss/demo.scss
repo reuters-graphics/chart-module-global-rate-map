@@ -1,6 +1,14 @@
 @import "~@reuters-graphics/style-theme-eisbaer/scss/main";
 @import "~@reuters-graphics/style-color/scss/thematic/brand";
+$dark-blue: #2f353f;
+$yellow: #fce587;
+$dark-yellow: #eec331;
+$half-white: rgba(255, 255, 255, 0.75);
+$boxshadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 
+body{
+  background-color: $dark-blue;
+}
 $GlobalRateMap-container: '#chart';
 
 @import 'chart';
