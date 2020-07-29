@@ -11,9 +11,12 @@ class GlobalRateMap extends ChartComponent {
   defaultProps = {
     map_stroke_width: .7,
     map_stroke_color: 'rgba(255, 255, 255, 0.15)',
+    map_stroke_color_active: 'rgba(255, 255, 255, 0.5)',
     spike_color: '#eec331',
     height: 500,
     geo: false,
+    spike_height: 20,
+    spike_size: 2,
     spike_stroke_width: 0.2
   };
 
@@ -46,8 +49,7 @@ class GlobalRateMap extends ChartComponent {
     const transition = d3.transition()
       .duration(750);
 
-    const scaleY = d3.scaleLinear().range([0,35]).domain([0, 1])
-    const xVal = 3
+    const scaleY = d3.scaleLinear().range([0, props.spike_height]).domain([0, 1])
     const svg = this.selection()
       .appendSelect('svg') // see docs in ./utils/d3.js
       .attr('width', width)
@@ -86,16 +88,18 @@ class GlobalRateMap extends ChartComponent {
 
     const projection = d3.geoNaturalEarth1();
     const countries = topojson.feature(props.geo, props.geo.objects.countries);
-    const disputed = topojson.feature(props.geo, props.geo.objects.disputedBoundaries);
+    const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
 
     projection.fitSize([width, props.height], countries);
     const path = d3.geoPath().projection(projection);
+
+    g.selectAll('.country').remove();
 
     const countryGroups = g.selectAll('g.country')
       .data(countries.features.filter(d => d.properties.slug != 'antarctica'))
       .enter()
       .append('g')
-      .attr('class','country');
+      .attr('class', 'country');
 
     countryGroups.append('path')
       .attr('class', d => 'c-' + d.properties.slug + ' level-0')
@@ -111,21 +115,22 @@ class GlobalRateMap extends ChartComponent {
         const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
         if (o) {
           const value = scaleY(o.value);
-          return 'M' + (obj[0] - xVal) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + xVal) + ' ' + obj[1] + ' ';
+          return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
         }
       })
-      .style('fill', function(d) {
-        const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
-        if (o) {
-          if (o.value >= 0.9) {
-            return 'url("#red")';
-          } else if (o.value >= 0.75) {
-            return 'url("#orange")';
-          } else {
-            return 'url("#white")';
-          }
-        }
-      })
+      // .style('fill', function(d) {
+      //   const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
+      //   if (o) {
+      //     if (o.value >= 0.9) {
+      //       return 'url("#red")';
+      //     } else if (o.value >= 0.75) {
+      //       return 'url("#orange")';
+      //     } else {
+      //       return 'url("#white")';
+      //     }
+      //   }
+      // })
+      .style('fill','none')
       .style('stroke', function(d) {
         const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
         if (o) {
@@ -138,28 +143,41 @@ class GlobalRateMap extends ChartComponent {
           }
         }
       })
-      .style('stroke-width', props.spike_stroke_width);
+      .style('stroke-width', .8);
+      // .style('stroke-width', props.spike_stroke_width);
 
-    countryGroups.on('mouseover',tipOn)
-    .on('mouseout',tipOff)
+    g.append('path').attr('class', 'disputed level-0')
+      .style('stroke', props.map_stroke_color)
+      .style('stroke-width', props.map_stroke_width)
+      .attr('d', path(disputed))
 
-    function tipOn(obj){
+    countryGroups.on('mouseover', tipOn)
+      .on('mouseout', tipOff);
+
+    function tipOn(obj) {
       const sel = d3.select(this)
       sel.selectAll('.level-0')
-        .style('stroke-width', 1)
+        .classed('active', true)
+        .style('stroke', props.map_stroke_color_active)
+        .style('stroke-width', 1);
 
       sel.select('.centroid')
-        .style('stroke-width', 1)
+        .classed('active', true)
+        .style('stroke-width', 1);
     }
 
-    function tipOff(obj){
-      const sel = d3.select(this)
+    function tipOff(obj) {
+      const sel = d3.select(this);
       sel.selectAll('.level-0')
-        .style('stroke-width', props.map_stroke_width)
+        .classed('active', false)
+        .style('stroke', props.map_stroke_color)
+        // .style('stroke-width', props.map_stroke_width);
 
       sel.select('.centroid')
-        .style('stroke-width', props.spike_stroke_width)
+        .classed('active', false)
+        // .style('stroke-width', props.spike_stroke_width);
     }
+
     return this;
   }
 }
