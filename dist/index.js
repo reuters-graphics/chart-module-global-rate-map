@@ -1,7 +1,10 @@
-import * as d3 from 'd3';
-import { selection } from 'd3';
-import merge from 'lodash/merge';
-import AtlasMetadataClient from '@reuters-graphics/graphics-atlas-client';
+'use strict';
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var d3 = require('d3');
+var merge = _interopDefault(require('lodash/merge'));
+var AtlasMetadataClient = _interopDefault(require('@reuters-graphics/graphics-atlas-client'));
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -287,13 +290,13 @@ var ErrorDataType = /*#__PURE__*/function (_ChartError4) {
   return ErrorDataType;
 }(ChartError);
 
-selection.prototype.moveToFront = function () {
+d3.selection.prototype.moveToFront = function () {
   return this.each(function () {
     this.parentNode.appendChild(this);
   });
 };
 
-selection.prototype.moveToBack = function () {
+d3.selection.prototype.moveToBack = function () {
   return this.each(function () {
     var firstChild = this.parentNode.firstChild;
 
@@ -325,7 +328,7 @@ selection.prototype.moveToBack = function () {
  */
 
 
-selection.prototype.appendSelect = function (querySelector) {
+d3.selection.prototype.appendSelect = function (querySelector) {
   // Test querySlector w/ classes
   if (!/^[a-zA-Z]+[0-9]?\.-?[_a-zA-Z][_a-zA-Z0-9.-]*[a-zA-Z0-9]*$/.test(querySelector)) {
     // Test querySelector just an element
@@ -776,4 +779,4 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
   return GlobalRateMap;
 }(ChartComponent);
 
-export default GlobalRateMap;
+module.exports = GlobalRateMap;
