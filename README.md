@@ -19,13 +19,64 @@ const myChart = new GlobalRateMap();
 // as well as any props or data to their respective methods. Then call draw.
 myChart
   .selection('#chart')
-  .data([1, 2, 3])
-  .props({ stroke: 'orange' })
+  // Data needs to be in this format
+  .data([{
+    'key': 'US',
+    'value': .6,
+  },
+  {
+    'key': 'IN',
+    'value': .9,
+  }])
+  .props({ 
+    // Stroke on the country borders
+    map_stroke_width: 0.7,
+
+    // Color on country borders
+    map_stroke_color: 'rgba(255, 255, 255, 0.15)',
+
+    // Color on country borders when hovered
+    map_stroke_color_active: 'rgba(255, 255, 255, 0.5)',
+
+    // Map height
+    height: 400,
+
+    // Topojson
+    geo: false,
+
+    // Locale for country names on hover
+    locale: 'en',
+
+    // Gap between text and centroid on hover
+    hover_gap: 12.5,
+
+    // Max height of the spike
+    spike_height: 20,
+
+    // Half of base for the spike
+    spike_size: 2,
+
+    // Stroke width of the spike
+    spike_stroke_width: 0.8,
+
+    // Stroke width of the spike when highlighted
+    spike_highlight_stroke_width: 1.2,
+
+    // Range of values to filter the data on. Use this for mobile maps.
+    range: {min: 0, max: 1}
+  })
   .draw();
 
 // You can call any method again to update the chart.
 myChart
-  .data([3, 4, 5])
+  .data([{
+    'key': 'BR',
+    'value': .6,
+  },
+  {
+    'key': 'IN',
+    'value': 1,
+  }])
   .draw();
 
 // Or just call the draw function alone, which is useful for resizing the chart.

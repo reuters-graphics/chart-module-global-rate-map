@@ -28,7 +28,7 @@ class ChartComponent extends React.Component {
     this.chart
       .selection(this.chartContainer.current)
       .data(newData)
-      .props({ geo: defaultGeo })
+      .props({ geo: defaultGeo})
       .draw();
 
     // Use it again.

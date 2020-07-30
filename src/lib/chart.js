@@ -1,6 +1,5 @@
 import ChartComponent from './base/ChartComponent';
 import d3 from './utils/d3';
-import population from './pop.json';
 import * as topojson from 'topojson-client';
 
 import AtlasMetadataClient from '@reuters-graphics/graphics-atlas-client';
@@ -19,6 +18,7 @@ class GlobalRateMap extends ChartComponent {
     hover_gap: 12.5,
     spike_height: 20,
     spike_size: 2,
+    range: { min: 0, max: 1 },
     spike_stroke_width: 0.8,
     spike_highlight_stroke_width: 1.2
   };
@@ -29,28 +29,7 @@ class GlobalRateMap extends ChartComponent {
     const node = this.selection().node();
     const { width } = node.getBoundingClientRect();
 
-    const gradients = [ {
-      color: '#de2d26',
-      start_opacity: 0.8,
-      mid_opacity: 0.1,
-      stop_opacity: 0,
-      id: 'red'
-    }, {
-      color: '#f68e26',
-      start_opacity: 0.8,
-      mid_opacity: 0.1,
-      stop_opacity: 0,
-      id: 'orange',
-    }, {
-      color: 'rgba(255,255,255,0.8)',
-      start_opacity: 0.8,
-      mid_opacity: 0.1,
-      stop_opacity: 0,
-      id: 'white',
-    }];
-
-    const transition = d3.transition()
-      .duration(750);
+    const newData = data.filter(d => d.value >= props.range.min && d.value <= props.range.max)
 
     const scaleY = d3.scaleLinear().range([0, props.spike_height]).domain([0, 1])
     const svg = this.selection()
@@ -60,34 +39,6 @@ class GlobalRateMap extends ChartComponent {
 
     const g = svg.appendSelect('g')
       .attr('transform', `translate(${0}, ${0})`);
-
-    const defs = svg.appendSelect('defs')
-      .selectAll('linearGradient')
-      .data(gradients)
-      .enter()
-      .appendSelect('linearGradient')
-      .attr('id', d => d.id)
-      .attr('x1', '0%')
-      .attr('x2', '0%')
-      .attr('y1', '0%')
-      .attr('y2', '95%')
-      .each(function(d) {
-        const el = d3.select(this);
-        el.append('stop')
-          .attr('offset', 0+'%')
-          .style('stop-color', d.color)
-          .style('stop-opacity', d.start_opacity);
-
-        el.append('stop')
-          .attr('offset', (d.id === 'up')?'10%':'90%')
-          .style('stop-color', d.color)
-          .style('stop-opacity', d.mid_opacity);
-
-        el.append('stop')
-          .attr('offset', 100+'%')
-          .style('stop-color', d.color)
-          .style('stop-opacity', d.stop_opacity);
-      });
 
     const projection = d3.geoNaturalEarth1();
     const countries = topojson.feature(props.geo, props.geo.objects.countries);
@@ -116,7 +67,7 @@ class GlobalRateMap extends ChartComponent {
       .attr('class', d => d.properties.slug + ' centroid')
       .attr('d', function(d) {
         const obj = projection(d.properties.centroid);
-        const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
+        const o = newData.filter(e => d.properties.isoAlpha2 === e.key)[0];
         if (o) {
           const value = scaleY(o.value);
           return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
@@ -124,7 +75,7 @@ class GlobalRateMap extends ChartComponent {
       })
       .style('fill', 'none')
       .style('stroke', function(d) {
-        const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
+        const o = newData.filter(e => d.properties.isoAlpha2 === e.key)[0];
         if (o) {
           if (o.value >= 0.9) {
             return '#de2d26';
@@ -148,7 +99,6 @@ class GlobalRateMap extends ChartComponent {
     function tipOn(obj) {
       const sel = d3.select(this);
       g.selectAll('.country').style('opacity', 0.2);
-      
       sel.appendSelect('text')
         .attr('transform',function(d) {
           const o = projection(d.properties.centroid)
