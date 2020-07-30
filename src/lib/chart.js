@@ -13,11 +13,14 @@ class GlobalRateMap extends ChartComponent {
     map_stroke_color: 'rgba(255, 255, 255, 0.15)',
     map_stroke_color_active: 'rgba(255, 255, 255, 0.5)',
     spike_color: '#eec331',
-    height: 500,
+    height: 400,
     geo: false,
+    locale: 'en',
+    hover_gap: 12.5,
     spike_height: 20,
     spike_size: 2,
-    spike_stroke_width: 0.2
+    spike_stroke_width: 0.8,
+    spike_highlight_stroke_width: 1.2
   };
 
   draw() {
@@ -105,6 +108,7 @@ class GlobalRateMap extends ChartComponent {
       .attr('class', d => 'c-' + d.properties.slug + ' level-0')
       .style('stroke', props.map_stroke_color)
       .style('stroke-width', props.map_stroke_width)
+      .style('fill', 'rgba(255,255,255,0)')
       .attr('d', path);
 
     countryGroups
@@ -118,19 +122,7 @@ class GlobalRateMap extends ChartComponent {
           return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value)+ ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
         }
       })
-      // .style('fill', function(d) {
-      //   const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
-      //   if (o) {
-      //     if (o.value >= 0.9) {
-      //       return 'url("#red")';
-      //     } else if (o.value >= 0.75) {
-      //       return 'url("#orange")';
-      //     } else {
-      //       return 'url("#white")';
-      //     }
-      //   }
-      // })
-      .style('fill','none')
+      .style('fill', 'none')
       .style('stroke', function(d) {
         const o = data.filter(e => d.properties.isoAlpha2 === e.key)[0];
         if (o) {
@@ -143,39 +135,49 @@ class GlobalRateMap extends ChartComponent {
           }
         }
       })
-      .style('stroke-width', .8);
-      // .style('stroke-width', props.spike_stroke_width);
+      .style('stroke-width', props.spike_stroke_width);
 
     g.append('path').attr('class', 'disputed level-0')
       .style('stroke', props.map_stroke_color)
       .style('stroke-width', props.map_stroke_width)
-      .attr('d', path(disputed))
+      .attr('d', path(disputed));
 
     countryGroups.on('mouseover', tipOn)
       .on('mouseout', tipOff);
 
     function tipOn(obj) {
-      const sel = d3.select(this)
+      const sel = d3.select(this);
+      g.selectAll('.country').style('opacity', 0.2);
+      
+      sel.appendSelect('text')
+        .attr('transform',function(d) {
+          const o = projection(d.properties.centroid)
+          return `translate(${o[0]},${o[1] + props.hover_gap})`
+        })
+        .style('text-anchor','middle')
+        .text(d=>d.properties.translations[props.locale]);
+
+      sel.style('opacity', 1);
       sel.selectAll('.level-0')
         .classed('active', true)
-        .style('stroke', props.map_stroke_color_active)
-        .style('stroke-width', 1);
+        .style('stroke', props.map_stroke_color_active);
 
       sel.select('.centroid')
         .classed('active', true)
-        .style('stroke-width', 1);
+        .style('stroke-width', props.spike_highlight_stroke_width);
     }
 
     function tipOff(obj) {
+      g.selectAll('.country').style('opacity', 1);
       const sel = d3.select(this);
+      sel.select('text').remove()
       sel.selectAll('.level-0')
         .classed('active', false)
-        .style('stroke', props.map_stroke_color)
-        // .style('stroke-width', props.map_stroke_width);
+        .style('stroke', props.map_stroke_color);
 
       sel.select('.centroid')
         .classed('active', false)
-        // .style('stroke-width', props.spike_stroke_width);
+        .style('stroke-width', props.spike_stroke_width);
     }
 
     return this;
