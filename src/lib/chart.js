@@ -3,6 +3,7 @@ import * as topojson from 'topojson-client';
 // import AtlasMetadataClient from '@reuters-graphics/graphics-atlas-client';
 import ChartComponent from './base/ChartComponent';
 import d3 from './utils/d3';
+import { geoVoronoi } from 'd3-geo-voronoi';
 
 // const client = new AtlasMetadataClient();
 // import topology from '@reuters-graphics/graphics-atlas-client/topojson/global.110m.json';
@@ -10,21 +11,22 @@ import d3 from './utils/d3';
 class GlobalRateMap extends ChartComponent {
   defaultProps = {
     map_stroke_width: 0.7,
-    map_stroke_color: 'rgba(255, 255, 255, 0.15)',
-    map_stroke_color_active: 'rgba(255, 255, 255, 0.5)',
+    map_stroke_color: 'rgba(255, 255, 255, 0.25)',
+    map_stroke_color_active: 'rgba(255, 255, 255, 0.75)',
     spike_color: '#eec331',
     height: 400,
     geo: false,
     locale: 'en',
     hover_gap: 12.5,
-    spike_height: 20,
-    spike_size: 2,
+    spike_height: 30,
+    spike_size: 3,
     range: { min: 0.75, max: 1 },
     spike_stroke_width: 0.8,
     spike_highlight_stroke_width: 1.2,
     spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9])
       .range(['#ccc', '#f68e26', '#de2d26']),
+    spike_inactive_opacity: 0,
   };
 
   draw() {
@@ -48,6 +50,18 @@ class GlobalRateMap extends ChartComponent {
     const countries = topojson.feature(props.geo, props.geo.objects.countries);
     const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
 
+    const filteredCountryKeys = newData.map(d => d.key);
+    const countryCentroids = countries.features
+      .filter(c => filteredCountryKeys.includes(c.properties.isoAlpha2))
+      .map(({ properties }) => ({
+        type: 'Feature',
+        properties,
+        geometry: {
+          type: 'Point',
+          coordinates: properties.centroid,
+        },
+      }));
+
     projection.fitSize([width, props.height], countries);
     const path = d3.geoPath().projection(projection);
 
@@ -57,7 +71,8 @@ class GlobalRateMap extends ChartComponent {
       .data(countries.features.filter(d => d.properties.slug !== 'antarctica'))
       .enter()
       .append('g')
-      .attr('class', 'country');
+      .attr('class', d => `country g-${d.properties.slug}`)
+      .style('pointer-events', 'none');
 
     countryGroups.appendSelect('path.level-0')
       .attr('class', d => 'c-' + d.properties.slug + ' level-0')
@@ -90,24 +105,27 @@ class GlobalRateMap extends ChartComponent {
       .style('stroke-width', props.map_stroke_width)
       .attr('d', path(disputed));
 
-    countryGroups
-      .style('pointer-events', 'none')
-      .style('pointer-events', function(d) {
-        const o = newData.filter(e => d.properties.isoAlpha2 === e.key)[0];
-        if (!o) return 'none';
-        if (
-          o.value >= props.range.min &&
-          o.value <= props.range.max
-        ) return 'auto';
-        return 'none';
-      })
+    const countryVoronoiCentroids = g.appendSelect('g.voronoi')
+      .selectAll('path.voronoi')
+      .data(geoVoronoi().polygons(countryCentroids).features);
+
+    countryVoronoiCentroids.enter()
+      .append('path')
+      .attr('class', 'voronoi')
+      .merge(countryVoronoiCentroids)
+      .style('fill', 'none')
+      .style('cursor', 'crosshair')
+      .attr('pointer-events', 'all')
+      .attr('d', path)
       .on('mouseover', tipOn)
       .on('mouseout', tipOff);
 
-    function tipOn(obj) {
-      const sel = d3.select(this);
-      g.selectAll('path.centroid').style('opacity', 0);
-      g.selectAll(`path.centroid.${obj.properties.slug}`).style('opacity', 1);
+    function tipOn(voronoiPath) {
+      const { properties } = voronoiPath.properties.site;
+      const sel = g.select(`g.country.g-${properties.slug}`);
+      g.selectAll('path.centroid')
+        .style('opacity', props.spike_inactive_opacity);
+      g.selectAll(`path.centroid.${properties.slug}`).style('opacity', 1);
       sel.appendSelect('text')
         .attr('transform', function(d) {
           const o = projection(d.properties.centroid);
@@ -126,9 +144,10 @@ class GlobalRateMap extends ChartComponent {
         .style('stroke-width', props.spike_highlight_stroke_width);
     }
 
-    function tipOff(obj) {
+    function tipOff(voronoiPath) {
+      const { properties } = voronoiPath.properties.site;
+      const sel = g.select(`g.country.g-${properties.slug}`);
       g.selectAll('path.centroid').style('opacity', 1);
-      const sel = d3.select(this);
       sel.select('text').remove();
       sel.selectAll('.level-0')
         .classed('active', false)
