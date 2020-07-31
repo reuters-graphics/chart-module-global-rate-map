@@ -681,7 +681,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       hover_gap: 12.5,
       spike_height: 30,
       spike_size: 3,
-      range: function range(width) {
+      getDataRange: function getDataRange(width) {
         return {
           min: 0,
           max: 1
@@ -709,9 +709,9 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
 
       var height = width * props.heightRatio;
 
-      var _props$range = props.range(),
-          filterMin = _props$range.min,
-          filterMax = _props$range.max;
+      var _props$getDataRange = props.getDataRange(width),
+          filterMin = _props$getDataRange.min,
+          filterMax = _props$getDataRange.max;
 
       var filteredData = data.filter(function (d) {
         return d.value >= filterMin && d.value <= filterMax;
