@@ -21,7 +21,7 @@ class GlobalRateMap extends ChartComponent {
     hover_gap: 12.5,
     spike_height: 30,
     spike_size: 3,
-    range: (width) => ({ min: 0, max: 1 }),
+    getDataRange: (width) => ({ min: 0, max: 1 }),
     spike_stroke_width: 0.8,
     spike_highlight_stroke_width: 1.2,
     spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
@@ -37,7 +37,7 @@ class GlobalRateMap extends ChartComponent {
     const { width } = node.getBoundingClientRect();
     const height = width * props.heightRatio;
 
-    const { min: filterMin, max: filterMax } = props.range();
+    const { min: filterMin, max: filterMax } = props.getDataRange(width);
     const filteredData = data.filter(d => d.value >= filterMin && d.value <= filterMax);
 
     const scaleY = d3.scaleLinear().range([0, props.spike_height]).domain([0, 1]);
