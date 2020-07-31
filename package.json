@@ -35,7 +35,8 @@
   "dependencies": {
     "@reuters-graphics/graphics-atlas-client": "^0.0.6",
     "d3": "^5.16.0",
-    "lodash": "^4.17.15",
+    "d3-geo-voronoi": "^1.6.0",
+    "lodash": "^4.17.19",
     "topojson": "^3.0.2"
   }
 }
