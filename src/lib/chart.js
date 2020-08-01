@@ -50,7 +50,7 @@ class GlobalRateMap extends ChartComponent {
 
     const projection = d3.geoNaturalEarth1();
     const countries = topojson.feature(props.geo, props.geo.objects.countries);
-    const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
+    // const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
 
     const filteredCountryKeys = filteredData.map(d => d.key);
     const countryCentroids = countries.features
@@ -124,11 +124,11 @@ class GlobalRateMap extends ChartComponent {
       })
       .style('stroke-width', props.spike_stroke_width);
 
-    g.appendSelect('path.disputed')
-      .attr('class', 'disputed level-0')
-      .style('stroke', props.map_stroke_color)
-      .style('stroke-width', props.map_stroke_width)
-      .attr('d', path(disputed));
+    // g.appendSelect('path.disputed')
+    //   .attr('class', 'disputed level-0')
+    //   .style('stroke', props.map_stroke_color)
+    //   .style('stroke-width', props.map_stroke_width)
+    //   .attr('d', path(disputed));
 
     const countryVoronoiCentroids = g.appendSelect('g.voronoi')
       .selectAll('path.voronoi')
