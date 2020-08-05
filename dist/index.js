@@ -271,6 +271,131 @@ function object(topology, o) {
   return geometry(o);
 }
 
+function stitch(topology, arcs) {
+  var stitchedArcs = {},
+      fragmentByStart = {},
+      fragmentByEnd = {},
+      fragments = [],
+      emptyIndex = -1;
+
+  // Stitch empty arcs first, since they may be subsumed by other arcs.
+  arcs.forEach(function(i, j) {
+    var arc = topology.arcs[i < 0 ? ~i : i], t;
+    if (arc.length < 3 && !arc[1][0] && !arc[1][1]) {
+      t = arcs[++emptyIndex], arcs[emptyIndex] = i, arcs[j] = t;
+    }
+  });
+
+  arcs.forEach(function(i) {
+    var e = ends(i),
+        start = e[0],
+        end = e[1],
+        f, g;
+
+    if (f = fragmentByEnd[start]) {
+      delete fragmentByEnd[f.end];
+      f.push(i);
+      f.end = end;
+      if (g = fragmentByStart[end]) {
+        delete fragmentByStart[g.start];
+        var fg = g === f ? f : f.concat(g);
+        fragmentByStart[fg.start = f.start] = fragmentByEnd[fg.end = g.end] = fg;
+      } else {
+        fragmentByStart[f.start] = fragmentByEnd[f.end] = f;
+      }
+    } else if (f = fragmentByStart[end]) {
+      delete fragmentByStart[f.start];
+      f.unshift(i);
+      f.start = start;
+      if (g = fragmentByEnd[start]) {
+        delete fragmentByEnd[g.end];
+        var gf = g === f ? f : g.concat(f);
+        fragmentByStart[gf.start = g.start] = fragmentByEnd[gf.end = f.end] = gf;
+      } else {
+        fragmentByStart[f.start] = fragmentByEnd[f.end] = f;
+      }
+    } else {
+      f = [i];
+      fragmentByStart[f.start = start] = fragmentByEnd[f.end = end] = f;
+    }
+  });
+
+  function ends(i) {
+    var arc = topology.arcs[i < 0 ? ~i : i], p0 = arc[0], p1;
+    if (topology.transform) p1 = [0, 0], arc.forEach(function(dp) { p1[0] += dp[0], p1[1] += dp[1]; });
+    else p1 = arc[arc.length - 1];
+    return i < 0 ? [p1, p0] : [p0, p1];
+  }
+
+  function flush(fragmentByEnd, fragmentByStart) {
+    for (var k in fragmentByEnd) {
+      var f = fragmentByEnd[k];
+      delete fragmentByStart[f.start];
+      delete f.start;
+      delete f.end;
+      f.forEach(function(i) { stitchedArcs[i < 0 ? ~i : i] = 1; });
+      fragments.push(f);
+    }
+  }
+
+  flush(fragmentByEnd, fragmentByStart);
+  flush(fragmentByStart, fragmentByEnd);
+  arcs.forEach(function(i) { if (!stitchedArcs[i < 0 ? ~i : i]) fragments.push([i]); });
+
+  return fragments;
+}
+
+function mesh(topology) {
+  return object(topology, meshArcs.apply(this, arguments));
+}
+
+function meshArcs(topology, object, filter) {
+  var arcs, i, n;
+  if (arguments.length > 1) arcs = extractArcs(topology, object, filter);
+  else for (i = 0, arcs = new Array(n = topology.arcs.length); i < n; ++i) arcs[i] = i;
+  return {type: "MultiLineString", arcs: stitch(topology, arcs)};
+}
+
+function extractArcs(topology, object, filter) {
+  var arcs = [],
+      geomsByArc = [],
+      geom;
+
+  function extract0(i) {
+    var j = i < 0 ? ~i : i;
+    (geomsByArc[j] || (geomsByArc[j] = [])).push({i: i, g: geom});
+  }
+
+  function extract1(arcs) {
+    arcs.forEach(extract0);
+  }
+
+  function extract2(arcs) {
+    arcs.forEach(extract1);
+  }
+
+  function extract3(arcs) {
+    arcs.forEach(extract2);
+  }
+
+  function geometry(o) {
+    switch (geom = o, o.type) {
+      case "GeometryCollection": o.geometries.forEach(geometry); break;
+      case "LineString": extract1(o.arcs); break;
+      case "MultiLineString": case "Polygon": extract2(o.arcs); break;
+      case "MultiPolygon": extract3(o.arcs); break;
+    }
+  }
+
+  geometry(object);
+
+  geomsByArc.forEach(filter == null
+      ? function(geoms) { arcs.push(geoms[0].i); }
+      : function(geoms) { if (filter(geoms[0].g, geoms[geoms.length - 1].g)) arcs.push(geoms[0].i); });
+
+  return arcs;
+}
+
 var ChartError = /*#__PURE__*/function (_Error) {
   _inherits(ChartError, _Error);
 
@@ -566,7 +691,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       spike_highlight_stroke_width: 1.2,
       spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9]).range(['#ccc', '#f68e26', '#de2d26']),
-      spike_inactive_opacity: 0
+      spike_inactive_opacity: 0,
+      disputed_dasharray: [5, 3]
     });
 
     return _this;
@@ -596,8 +722,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       .attr('width', width).attr('height', height);
       var g = svg.appendSelect('g');
       var projection = d3.geoNaturalEarth1();
-      var countries = feature(props.geo, props.geo.objects.countries); // const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
-
+      var countries = feature(props.geo, props.geo.objects.countries);
+      var disputed = mesh(props.geo, props.geo.objects.disputedBoundaries);
       var filteredCountryKeys = filteredData.map(function (d) {
         return d.key;
       });
@@ -642,6 +768,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       projection.fitSize([width, height], countries);
       var path = d3.geoPath().projection(projection);
       g.selectAll('.country').remove();
+      svg.selectAll('.disputed').remove();
       var countryGroups = g.selectAll('g.country').data(countries.features.filter(function (d) {
         return d.properties.slug !== 'antarctica';
       })).enter().append('g').attr('class', function (d) {
@@ -667,16 +794,12 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
           return d.properties.isoAlpha2 === e.key;
         });
         return o ? props.spike_color_scale(o.value) : null;
-      }).style('stroke-width', props.spike_stroke_width); // g.appendSelect('path.disputed')
-      //   .attr('class', 'disputed level-0')
-      //   .style('stroke', props.map_stroke_color)
-      //   .style('stroke-width', props.map_stroke_width)
-      //   .attr('d', path(disputed));
-
+      }).style('stroke-width', props.spike_stroke_width);
       var countryVoronoiCentroids = g.appendSelect('g.voronoi').selectAll('path.voronoi').data(d3GeoVoronoi.geoVoronoi().polygons(voronoiCentroids).features);
       countryVoronoiCentroids.enter().append('path').attr('class', function (d) {
         return 'voronoi';
       }).merge(countryVoronoiCentroids).style('fill', 'none').style('cursor', 'crosshair').attr('pointer-events', 'all').attr('d', path).on('mouseover', tipOn).on('mouseout', tipOff);
+      svg.appendSelect('path.disputed').attr('class', 'disputed level-0').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
 
       function tipOn(voronoiPath) {
         var properties = voronoiPath.properties.site.properties;

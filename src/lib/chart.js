@@ -28,6 +28,7 @@ class GlobalRateMap extends ChartComponent {
       .domain([0.75, 0.9])
       .range(['#ccc', '#f68e26', '#de2d26']),
     spike_inactive_opacity: 0,
+    disputed_dasharray: [5, 3]
   };
 
   draw() {
@@ -50,7 +51,7 @@ class GlobalRateMap extends ChartComponent {
 
     const projection = d3.geoNaturalEarth1();
     const countries = topojson.feature(props.geo, props.geo.objects.countries);
-    // const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
+    const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
 
     const filteredCountryKeys = filteredData.map(d => d.key);
     const countryCentroids = countries.features
@@ -91,6 +92,7 @@ class GlobalRateMap extends ChartComponent {
     const path = d3.geoPath().projection(projection);
 
     g.selectAll('.country').remove();
+    svg.selectAll('.disputed').remove()
 
     const countryGroups = g.selectAll('g.country')
       .data(countries.features.filter(d => d.properties.slug !== 'antarctica'))
@@ -124,12 +126,6 @@ class GlobalRateMap extends ChartComponent {
       })
       .style('stroke-width', props.spike_stroke_width);
 
-    // g.appendSelect('path.disputed')
-    //   .attr('class', 'disputed level-0')
-    //   .style('stroke', props.map_stroke_color)
-    //   .style('stroke-width', props.map_stroke_width)
-    //   .attr('d', path(disputed));
-
     const countryVoronoiCentroids = g.appendSelect('g.voronoi')
       .selectAll('path.voronoi')
       .data(geoVoronoi().polygons(voronoiCentroids).features);
@@ -144,6 +140,14 @@ class GlobalRateMap extends ChartComponent {
       .attr('d', path)
       .on('mouseover', tipOn)
       .on('mouseout', tipOff);
+
+    svg.appendSelect('path.disputed')
+      .attr('class', 'disputed level-0')
+      .style('stroke', props.map_stroke_color)
+      .style('stroke-width', props.map_stroke_width)
+      .style('fill', 'none')
+      .style('stroke-dasharray', props.disputed_dasharray)
+      .attr('d', path(disputed));
 
     function tipOn(voronoiPath) {
       const { properties } = voronoiPath.properties.site;
