@@ -786,7 +786,9 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       svg.selectAll('.disputed').remove();
       var countryGroups = g.appendSelect('g.countries').selectAll('path.country').data(countries.features.filter(function (d) {
         return d.properties.slug !== 'antarctica';
-      }));
+      }), function (d) {
+        return d.properties.slug;
+      });
       countryGroups.enter().append('path').attr('class', function (d) {
         return "country c-".concat(d.properties.slug, " level-0");
       }).merge(countryGroups).style('pointer-events', 'none').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', props.map_fill).attr('d', path);
@@ -841,7 +843,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
 
       function tipOff(voronoiPath) {
         var properties = voronoiPath.properties.site.properties;
-        var country = g.select(".country.c-".concat(properties.slug));
+        var country = g.selectAll(".country.c-".concat(properties.slug));
         g.selectAll('path.centroid').style('opacity', 1).classed('active', false).style('stroke-width', props.spike_stroke_width);
         tooltip.html('');
         country.classed('active', false).style('stroke-width', props.map_stroke_width).style('stroke', props.map_stroke_color);
