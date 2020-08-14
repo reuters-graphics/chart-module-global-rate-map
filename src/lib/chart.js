@@ -11,9 +11,9 @@ import { geoVoronoi } from 'd3-geo-voronoi';
 class GlobalRateMap extends ChartComponent {
   defaultProps = {
     map_stroke_width: 0.7,
-    map_stroke_color: 'rgba(255, 255, 255, 0.25)',
+    map_stroke_color: '#2f353f',
     map_highlight_stroke_width: 1.2,
-    map_fill: '#333',
+    map_fill: 'rgba(153,153,153,0.25)',
     map_stroke_color_active: 'rgba(255, 255, 255, 0.75)',
     spike_color: '#eec331',
     heightRatio: 0.5,
@@ -194,7 +194,8 @@ class GlobalRateMap extends ChartComponent {
       g.selectAll(`.country.c-${properties.slug}`)
         .classed('active', true)
         .style('stroke-width', props.map_highlight_stroke_width)
-        .style('stroke', props.map_stroke_color_active);
+        .style('stroke', props.map_stroke_color_active)
+        .moveToFront();
     }
 
     function tipOff(voronoiPath) {
