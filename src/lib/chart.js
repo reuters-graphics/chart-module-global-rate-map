@@ -29,6 +29,7 @@ class GlobalRateMap extends ChartComponent {
       .range(['#ccc', '#f68e26', '#de2d26']),
     spike_inactive_opacity: 0,
     disputed_dasharray: [5, 3],
+    clip_box: null,
   };
 
   draw() {
@@ -88,7 +89,13 @@ class GlobalRateMap extends ChartComponent {
       },
     })));
 
-    projection.fitSize([width, height], countries);
+    if (props.clip_box.length === 2 && props.clip_box[0].length === 2 && props.clip_box[1].length === 2) {
+      console.log('clipping! :)')
+      projection.fitSize([width, height], makeRangeBox(props.clip_box));
+    } else {
+      console.log('cant clip :(')
+      projection.fitSize([width, height], countries);
+    }
     const path = d3.geoPath().projection(projection);
 
     svg.selectAll('.disputed').remove();
@@ -205,4 +212,41 @@ class GlobalRateMap extends ChartComponent {
   }
 }
 
+function makeRangeBox (opts) {
+  var lon0 = opts[0][0]
+  var lon1 = opts[0][1]
+  var lat0 = opts[1][0]
+  var lat1 = opts[1][1]
+
+  // to cross antimeridian w/o ambiguity
+  if (lon0 > 0 && lon1 < 0) {
+    lon1 += 360
+  }
+
+  // to make lat span unambiguous
+  if (lat0 > lat1) {
+    var tmp = lat0
+    lat0 = lat1
+    lat1 = tmp
+  }
+
+  var dlon4 = (lon1 - lon0) / 4
+
+  return {
+    type: 'Polygon',
+    coordinates: [[
+      [lon0, lat0],
+      [lon0, lat1],
+      [lon0 + dlon4, lat1],
+      [lon0 + 2 * dlon4, lat1],
+      [lon0 + 3 * dlon4, lat1],
+      [lon1, lat1],
+      [lon1, lat0],
+      [lon1 - dlon4, lat0],
+      [lon1 - 2 * dlon4, lat0],
+      [lon1 - 3 * dlon4, lat0],
+      [lon0, lat0],
+    ]]
+  };
+}
 export default GlobalRateMap;

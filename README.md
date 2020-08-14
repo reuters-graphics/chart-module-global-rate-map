@@ -38,6 +38,9 @@ myChart
     // Color on country borders when hovered
     map_stroke_color_active: 'rgba(255, 255, 255, 0.5)',
 
+    // Map fill
+    map_fill: '#333',
+
     // Map height
     height: 400,
 
@@ -63,7 +66,18 @@ myChart
     spike_highlight_stroke_width: 1.2,
 
     // Range of values to filter the data on. Use this for mobile maps.
-    range: {min: 0, max: 1}
+    range: {min: 0, max: 1},
+
+    // clip_box helps clip the map to a custom bounding box. 
+    // If not passed, it maps to the full shapefile.
+    // Data is an array as two lng/lat points.
+    // First value is the top left corner
+    // Second value is the bottom right corner
+
+    // Can use http://bboxfinder.com/ to find a bounding box
+    clip_box: [
+          [-13.271484, 23.523700], [50.009766,48.603858]
+    ],
   })
   .draw();
 
