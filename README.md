@@ -35,6 +35,9 @@ myChart
     // Color on country borders
     map_stroke_color: 'rgba(255, 255, 255, 0.15)',
 
+    // map highlight stroke width
+    map_highlight_stroke_width: 1.2,
+
     // Color on country borders when hovered
     map_stroke_color_active: 'rgba(255, 255, 255, 0.5)',
 

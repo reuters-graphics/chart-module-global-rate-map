@@ -672,6 +672,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
     _defineProperty(_assertThisInitialized(_this), "defaultProps", {
       map_stroke_width: 0.7,
       map_stroke_color: 'rgba(255, 255, 255, 0.25)',
+      map_highlight_stroke_width: 1.2,
       map_fill: '#333',
       map_stroke_color_active: 'rgba(255, 255, 255, 0.75)',
       spike_color: '#eec331',
@@ -829,7 +830,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         }).style('text-anchor', 'middle').html(function (d) {
           return "\n          <tspan x=\"0\" y=\"0\">".concat(properties.translations[props.locale], "</tspan>\n          <tspan x=\"0\" dy=\"1em\">").concat(Math.round(value * 100).toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">of peak</tspan>\n        ");
         });
-        g.selectAll("country.c-".concat(properties.slug)).classed('active', true).style('stroke', props.map_stroke_color_active);
+        g.selectAll(".country.c-".concat(properties.slug)).classed('active', true).style('stroke-width', props.map_highlight_stroke_width).style('stroke', props.map_stroke_color_active);
       }
 
       function tipOff(voronoiPath) {
@@ -837,7 +838,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var country = g.select(".country.c-".concat(properties.slug));
         g.selectAll('path.centroid').style('opacity', 1).classed('active', false).style('stroke-width', props.spike_stroke_width);
         tooltip.html('');
-        country.selectAll('.level-0').classed('active', false).style('stroke', props.map_stroke_color);
+        country.classed('active', false).style('stroke-width', props.map_stroke_width).style('stroke', props.map_stroke_color);
       }
 
       return this;

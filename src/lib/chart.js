@@ -12,6 +12,7 @@ class GlobalRateMap extends ChartComponent {
   defaultProps = {
     map_stroke_width: 0.7,
     map_stroke_color: 'rgba(255, 255, 255, 0.25)',
+    map_highlight_stroke_width: 1.2,
     map_fill: '#333',
     map_stroke_color_active: 'rgba(255, 255, 255, 0.75)',
     spike_color: '#eec331',
@@ -173,7 +174,8 @@ class GlobalRateMap extends ChartComponent {
       g.selectAll('path.centroid')
         .style('opacity', props.spike_inactive_opacity);
 
-      g.selectAll(`path.centroid.${properties.slug}`).style('opacity', 1)
+      g.selectAll(`path.centroid.${properties.slug}`)
+        .style('opacity', 1)
         .classed('active', true)
         .style('stroke-width', props.spike_highlight_stroke_width);
 
@@ -188,8 +190,9 @@ class GlobalRateMap extends ChartComponent {
           <tspan x="0" dy="1em">${(Math.round(value * 100)).toLocaleString(props.locale)}%</tspan> <tspan class="smaller">of peak</tspan>
         `);
 
-      g.selectAll(`country.c-${properties.slug}`)
+      g.selectAll(`.country.c-${properties.slug}`)
         .classed('active', true)
+        .style('stroke-width', props.map_highlight_stroke_width)
         .style('stroke', props.map_stroke_color_active);
     }
 
@@ -199,12 +202,12 @@ class GlobalRateMap extends ChartComponent {
 
       g.selectAll('path.centroid').style('opacity', 1)
         .classed('active', false)
-        .style('stroke-width', props.spike_stroke_width)
+        .style('stroke-width', props.spike_stroke_width);
 
       tooltip.html('');
 
-      country.selectAll('.level-0')
-        .classed('active', false)
+      country.classed('active', false)
+        .style('stroke-width', props.map_stroke_width)
         .style('stroke', props.map_stroke_color);
     }
 
