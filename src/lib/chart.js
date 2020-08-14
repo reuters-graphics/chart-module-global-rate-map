@@ -28,7 +28,7 @@ class GlobalRateMap extends ChartComponent {
       .domain([0.75, 0.9])
       .range(['#ccc', '#f68e26', '#de2d26']),
     spike_inactive_opacity: 0,
-    disputed_dasharray: [5, 3]
+    disputed_dasharray: [5, 3],
   };
 
   draw() {
@@ -91,40 +91,22 @@ class GlobalRateMap extends ChartComponent {
     projection.fitSize([width, height], countries);
     const path = d3.geoPath().projection(projection);
 
-    g.selectAll('.country').remove();
-    svg.selectAll('.disputed').remove()
+    svg.selectAll('.disputed').remove();
 
-    const countryGroups = g.selectAll('g.country')
-      .data(countries.features.filter(d => d.properties.slug !== 'antarctica'))
+    const countryGroups = g.appendSelect('g.countries')
+      .selectAll('path.country')
+      .data(countries.features.filter(d => d.properties.slug !== 'antarctica'));
+
+    countryGroups
       .enter()
-      .append('g')
-      .attr('class', d => `country g-${d.properties.slug}`)
-      .style('pointer-events', 'none');
-
-    countryGroups.appendSelect('path.level-0')
-      .attr('class', d => 'c-' + d.properties.slug + ' level-0')
+      .append('path')
+      .attr('class', d => `country c-${d.properties.slug} level-0`)
+      .merge(countryGroups)
+      .style('pointer-events', 'none')
       .style('stroke', props.map_stroke_color)
       .style('stroke-width', props.map_stroke_width)
       .style('fill', props.map_fill)
       .attr('d', path);
-
-    countryGroups
-      .appendSelect('path.centroid')
-      .attr('class', d => d.properties.slug + ' centroid')
-      .attr('d', function(d) {
-        const obj = projection(d.properties.centroid);
-        const o = filteredData.filter(e => d.properties.isoAlpha2 === e.key)[0];
-        if (o) {
-          const value = scaleY(o.value);
-          return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
-        }
-      })
-      .style('fill', 'none')
-      .style('stroke', function(d) {
-        const o = filteredData.find(e => d.properties.isoAlpha2 === e.key);
-        return o ? props.spike_color_scale(o.value) : null;
-      })
-      .style('stroke-width', props.spike_stroke_width);
 
     const countryVoronoiCentroids = g.appendSelect('g.voronoi')
       .selectAll('path.voronoi')
@@ -149,48 +131,74 @@ class GlobalRateMap extends ChartComponent {
       .style('stroke-dasharray', props.disputed_dasharray)
       .attr('d', path(disputed));
 
+    const spikeCentroids = g.appendSelect('g.spike-layer')
+      .selectAll('path.centroid')
+      .data(countries.features.filter(d => d.properties.slug !== 'antarctica'))
+
+    spikeCentroids.enter()
+      .append('path')
+      .attr('class', d => d.properties.slug + ' centroid')
+      .merge(spikeCentroids)
+      .attr('d', function(d) {
+        const obj = projection(d.properties.centroid);
+        const o = filteredData.filter(e => d.properties.isoAlpha2 === e.key)[0];
+        if (o) {
+          const value = scaleY(o.value);
+          return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
+        }
+      })
+      .style('fill', 'none')
+      .style('stroke', function(d) {
+        const o = filteredData.find(e => d.properties.isoAlpha2 === e.key);
+        return o ? props.spike_color_scale(o.value) : null;
+      })
+      .style('stroke-width', props.spike_stroke_width);
+
+    const tooltip = g.appendSelect('g.text-group')
+      .append('text');
+
     function tipOn(voronoiPath) {
       const { properties } = voronoiPath.properties.site;
       if (properties.reset) return;
       const { value } = filteredData.find(e => properties.isoAlpha2 === e.key);
       if (!value) return;
-      const sel = g.select(`g.country.g-${properties.slug}`).moveToFront();
+
       g.selectAll('path.centroid')
         .style('opacity', props.spike_inactive_opacity);
-      g.selectAll(`path.centroid.${properties.slug}`).style('opacity', 1);
-      sel.appendSelect('text')
+
+      g.selectAll(`path.centroid.${properties.slug}`).style('opacity', 1)
+        .classed('active', true)
+        .style('stroke-width', props.spike_highlight_stroke_width);
+
+      tooltip
         .attr('transform', function(d) {
-          const o = projection(d.properties.centroid);
+          const o = projection(properties.centroid);
           return `translate(${o[0]},${o[1] + props.hover_gap})`;
         })
         .style('text-anchor', 'middle')
         .html(d => `
-          <tspan x="0" y="0">${d.properties.translations[props.locale]}</tspan>
-          <tspan x="0" dy="1rem">${(Math.round(value * 100)).toLocaleString(props.locale)}%</tspan> <tspan class="smaller">of peak</tspan>
+          <tspan x="0" y="0">${properties.translations[props.locale]}</tspan>
+          <tspan x="0" dy="1em">${(Math.round(value * 100)).toLocaleString(props.locale)}%</tspan> <tspan class="smaller">of peak</tspan>
         `);
 
-      sel.style('opacity', 1);
-      sel.selectAll('.level-0')
+      g.selectAll(`country.c-${properties.slug}`)
         .classed('active', true)
         .style('stroke', props.map_stroke_color_active);
-
-      sel.select('.centroid')
-        .classed('active', true)
-        .style('stroke-width', props.spike_highlight_stroke_width);
     }
 
     function tipOff(voronoiPath) {
       const { properties } = voronoiPath.properties.site;
-      const sel = g.select(`g.country.g-${properties.slug}`);
-      g.selectAll('path.centroid').style('opacity', 1);
-      sel.select('text').remove();
-      sel.selectAll('.level-0')
+      const country = g.select(`.country.c-${properties.slug}`);
+
+      g.selectAll('path.centroid').style('opacity', 1)
+        .classed('active', false)
+        .style('stroke-width', props.spike_stroke_width)
+
+      tooltip.html('');
+
+      country.selectAll('.level-0')
         .classed('active', false)
         .style('stroke', props.map_stroke_color);
-
-      sel.select('.centroid')
-        .classed('active', false)
-        .style('stroke-width', props.spike_stroke_width);
     }
 
     return this;
