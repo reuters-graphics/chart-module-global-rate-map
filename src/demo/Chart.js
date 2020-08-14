@@ -30,9 +30,9 @@ class ChartComponent extends React.Component {
       .data(newData)
       .props({
         geo: defaultGeo,
-        clip_box: [
-          [-13.271484, 23.523700], [50.009766,48.603858]
-        ],
+        // clip_box: [
+        //   [-13.271484, 23.523700], [50.009766,48.603858]
+        // ],
       })
       .draw();
 

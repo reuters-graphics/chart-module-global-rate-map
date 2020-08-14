@@ -89,7 +89,7 @@ class GlobalRateMap extends ChartComponent {
       },
     })));
 
-    if (props.clip_box.length === 2 && props.clip_box[0].length === 2 && props.clip_box[1].length === 2) {
+    if (props.clip_box && (props.clip_box.length === 2 && props.clip_box[0].length === 2 && props.clip_box[1].length === 2)) {
       console.log('clipping! :)')
       projection.fitSize([width, height], makeRangeBox(props.clip_box));
     } else {
