@@ -44,6 +44,9 @@ myChart
     // Map fill
     map_fill: '#333',
 
+    // Pass the d3 projection name you want to use
+    projection: 'geoNaturalEarth1',
+
     // Map height
     height: 400,
 

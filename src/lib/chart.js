@@ -19,6 +19,7 @@ class GlobalRateMap extends ChartComponent {
     heightRatio: 0.5,
     geo: false,
     locale: 'en',
+    projection: 'geoNaturalEarth1',
     hover_gap: 12.5,
     spike_height: 30,
     spike_size: 3,
@@ -51,7 +52,7 @@ class GlobalRateMap extends ChartComponent {
 
     const g = svg.appendSelect('g');
 
-    const projection = d3.geoNaturalEarth1();
+    const projection = d3[props.projection]();
     const countries = topojson.feature(props.geo, props.geo.objects.countries);
     const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
 
