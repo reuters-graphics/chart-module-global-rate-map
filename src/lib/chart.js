@@ -108,7 +108,7 @@ class GlobalRateMap extends ChartComponent {
 
     const countryGroups = g.appendSelect('g.countries')
       .selectAll('path.country')
-      .data(countries.features.filter(d => d.properties.slug !== 'antarctica'));
+      .data(countries.features.filter(d => d.properties.slug !== 'antarctica'), d => d.properties.slug);
 
     countryGroups
       .enter()
@@ -204,7 +204,7 @@ class GlobalRateMap extends ChartComponent {
 
     function tipOff(voronoiPath) {
       const { properties } = voronoiPath.properties.site;
-      const country = g.select(`.country.c-${properties.slug}`);
+      const country = g.selectAll(`.country.c-${properties.slug}`);
 
       g.selectAll('path.centroid').style('opacity', 1)
         .classed('active', false)
