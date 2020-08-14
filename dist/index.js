@@ -724,6 +724,11 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       var svg = this.selection().appendSelect('svg') // see docs in ./utils/d3.js
       .attr('width', width).attr('height', height);
       var g = svg.appendSelect('g');
+
+      if (!d3[props.projection]) {
+        props.projection = 'geoNaturalEarth1';
+      }
+
       var projection = d3[props.projection]();
       var countries = feature(props.geo, props.geo.objects.countries);
       var disputed = mesh(props.geo, props.geo.objects.disputedBoundaries);
