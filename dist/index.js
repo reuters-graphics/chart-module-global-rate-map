@@ -679,7 +679,13 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       heightRatio: 0.5,
       geo: false,
       locale: 'en',
-      projection: 'geoNaturalEarth1',
+      map_custom_projections: {
+        clip_box: null,
+        projection: 'geoNaturalEarth1',
+        center: null,
+        scale: null,
+        rotate: null
+      },
       hover_gap: 12.5,
       spike_height: 30,
       spike_size: 3,
@@ -694,8 +700,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9]).range(['#ccc', '#f68e26', '#de2d26']),
       spike_inactive_opacity: 0,
-      disputed_dasharray: [5, 3],
-      clip_box: null
+      disputed_dasharray: [5, 3]
     });
 
     return _this;
@@ -725,13 +730,26 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       .attr('width', width).attr('height', height);
       var g = svg.appendSelect('g');
 
-      if (!d3[props.projection]) {
-        props.projection = 'geoNaturalEarth1';
+      if (!d3[props.map_custom_projections.projection]) {
+        props.map_custom_projections.projection = 'geoNaturalEarth1';
       }
 
-      var projection = d3[props.projection]();
+      var projection = d3[props.map_custom_projections.projection]();
       var countries = feature(props.geo, props.geo.objects.countries);
-      var disputed = mesh(props.geo, props.geo.objects.disputedBoundaries);
+      var disputed;
+
+      if (props.geo.objects.disputedBoundaries) {
+        disputed = mesh(props.geo, props.geo.objects.disputedBoundaries);
+      }
+
+      if (props.map_custom_projections.center && props.map_custom_projections.center.length === 2) {
+        projection.center(props.map_custom_projections.center);
+      }
+
+      if (props.map_custom_projections.rotate && props.map_custom_projections.rotate.length === 2) {
+        projection.rotate(props.map_custom_projections.rotate);
+      }
+
       var filteredCountryKeys = filteredData.map(function (d) {
         return d.key;
       });
@@ -774,12 +792,16 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         };
       }));
 
-      if (props.clip_box && props.clip_box.length === 2 && props.clip_box[0].length === 2 && props.clip_box[1].length === 2) {
+      if (props.map_custom_projections.clip_box && props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2) {
         console.log('clipping! :)');
-        projection.fitSize([width, height], makeRangeBox(props.clip_box));
+        projection.fitSize([width, height], makeRangeBox(props.map_custom_projections.clip_box));
       } else {
         console.log('cant clip :(');
         projection.fitSize([width, height], countries);
+      }
+
+      if (props.map_custom_projections.scale) {
+        projection.scale(props.map_custom_projections.scale);
       }
 
       var path = d3.geoPath().projection(projection);
@@ -796,7 +818,11 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       countryVoronoiCentroids.enter().append('path').attr('class', function (d) {
         return 'voronoi';
       }).merge(countryVoronoiCentroids).style('fill', 'none').style('cursor', 'crosshair').attr('pointer-events', 'all').attr('d', path).on('mouseover', tipOn).on('mouseout', tipOff);
-      svg.appendSelect('path.disputed').attr('class', 'disputed level-0').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
+
+      if (disputed) {
+        svg.appendSelect('path.disputed').attr('class', 'disputed level-0').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
+      }
+
       var spikeCentroids = g.appendSelect('g.spike-layer').selectAll('path.centroid').data(countries.features.filter(function (d) {
         return d.properties.slug !== 'antarctica';
       }));
@@ -858,8 +884,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
 
 function makeRangeBox(opts) {
   var lon0 = opts[0][0];
-  var lon1 = opts[0][1];
-  var lat0 = opts[1][0];
+  var lon1 = opts[1][0];
+  var lat0 = opts[0][1];
   var lat1 = opts[1][1]; // to cross antimeridian w/o ambiguity
 
   if (lon0 > 0 && lon1 < 0) {
