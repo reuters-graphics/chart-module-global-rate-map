@@ -12,7 +12,7 @@ for (var key of Object.keys(defaultData.distributionRanks.cases)) {
     'value': defaultData.distributionRanks.cases[key],
   });
 }
-
+console.log(defaultGeo)
 class ChartComponent extends React.Component {
   state = { width: '' };
   chartContainer = React.createRef();
@@ -30,9 +30,15 @@ class ChartComponent extends React.Component {
       .data(newData)
       .props({
         geo: defaultGeo,
-        // clip_box: [
-        //   [-22.126267,61.616839], [47.654985,47.606322]
-        // ],
+        // custom_center: [173.640289, 3.403072],
+        map_custom_projections: {
+          center: [0, 5],
+          rotate: [-180, 0],
+          // scale: 150,
+          clip_box: [
+            [111, 2] , [225, -50]
+          ],
+        },
       })
       .draw();
 

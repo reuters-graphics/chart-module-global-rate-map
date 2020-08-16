@@ -44,9 +44,6 @@ myChart
     // Map fill
     map_fill: '#333',
 
-    // Pass the d3 projection name you want to use
-    projection: 'geoNaturalEarth1',
-
     // Map height
     height: 400,
 
@@ -81,9 +78,29 @@ myChart
     // Second value is the bottom right corner
 
     // Can use http://bboxfinder.com/ to find a bounding box
-    clip_box: [
-          [-13.271484, 23.523700], [50.009766,48.603858]
-    ],
+     map_custom_projections: {
+      // clip_box helps clip the map to a custom bounding box. 
+      // If not passed, it maps to the full shapefile.
+      // Data is an array as two lng/lat points.
+      // First value is the top left corner
+      // Second value is the bottom right corner
+
+      // Can use http://bboxfinder.com/ to find a bounding box
+      clip_box: [
+            [-13.271484, 23.523700], [50.009766,48.603858]
+      ],
+      // Pass the d3 projection name you want to use
+      projection: 'geoNaturalEarth1',
+
+      // custom centre of the map
+      center: null,
+
+      // custom scale of the map
+      scale: null,
+
+      // custom rotate of the map
+      rotate: null,
+    },
   })
   .draw();
 

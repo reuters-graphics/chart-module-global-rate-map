@@ -19,7 +19,13 @@ class GlobalRateMap extends ChartComponent {
     heightRatio: 0.5,
     geo: false,
     locale: 'en',
-    projection: 'geoNaturalEarth1',
+    map_custom_projections: {
+      clip_box: null,
+      projection: 'geoNaturalEarth1',
+      center: null,
+      scale: null,
+      rotate: null,
+    },
     hover_gap: 12.5,
     spike_height: 30,
     spike_size: 3,
@@ -31,7 +37,6 @@ class GlobalRateMap extends ChartComponent {
       .range(['#ccc', '#f68e26', '#de2d26']),
     spike_inactive_opacity: 0,
     disputed_dasharray: [5, 3],
-    clip_box: null,
   };
 
   draw() {
@@ -52,13 +57,24 @@ class GlobalRateMap extends ChartComponent {
 
     const g = svg.appendSelect('g');
 
-    if (!d3[props.projection]) {
-      props.projection='geoNaturalEarth1'
+    if (!d3[props.map_custom_projections.projection]) {
+      props.map_custom_projections.projection = 'geoNaturalEarth1';
     }
 
-    const projection = d3[props.projection]();
+    const projection = d3[props.map_custom_projections.projection]();
     const countries = topojson.feature(props.geo, props.geo.objects.countries);
-    const disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);
+    let disputed;
+    if (props.geo.objects.disputedBoundaries) {
+      disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);  
+    }
+
+    if (props.map_custom_projections.center && props.map_custom_projections.center.length === 2) {
+      projection.center(props.map_custom_projections.center);
+    }
+
+    if (props.map_custom_projections.rotate && props.map_custom_projections.rotate.length === 2) {
+      projection.rotate(props.map_custom_projections.rotate);
+    }
 
     const filteredCountryKeys = filteredData.map(d => d.key);
     const countryCentroids = countries.features
@@ -95,13 +111,18 @@ class GlobalRateMap extends ChartComponent {
       },
     })));
 
-    if (props.clip_box && (props.clip_box.length === 2 && props.clip_box[0].length === 2 && props.clip_box[1].length === 2)) {
-      console.log('clipping! :)')
-      projection.fitSize([width, height], makeRangeBox(props.clip_box));
+    if (props.map_custom_projections.clip_box && (props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2)) {
+      console.log('clipping! :)');
+      projection.fitSize([width, height], makeRangeBox(props.map_custom_projections.clip_box));
     } else {
-      console.log('cant clip :(')
+      console.log('cant clip :(');
       projection.fitSize([width, height], countries);
     }
+
+    if (props.map_custom_projections.scale) {
+      projection.scale(props.map_custom_projections.scale);
+    }
+
     const path = d3.geoPath().projection(projection);
 
     svg.selectAll('.disputed').remove();
@@ -136,13 +157,15 @@ class GlobalRateMap extends ChartComponent {
       .on('mouseover', tipOn)
       .on('mouseout', tipOff);
 
-    svg.appendSelect('path.disputed')
-      .attr('class', 'disputed level-0')
-      .style('stroke', props.map_stroke_color)
-      .style('stroke-width', props.map_stroke_width)
-      .style('fill', 'none')
-      .style('stroke-dasharray', props.disputed_dasharray)
-      .attr('d', path(disputed));
+    if (disputed) {
+      svg.appendSelect('path.disputed')
+        .attr('class', 'disputed level-0')
+        .style('stroke', props.map_stroke_color)
+        .style('stroke-width', props.map_stroke_width)
+        .style('fill', 'none')
+        .style('stroke-dasharray', props.disputed_dasharray)
+        .attr('d', path(disputed));
+    }
 
     const spikeCentroids = g.appendSelect('g.spike-layer')
       .selectAll('path.centroid')
@@ -223,8 +246,8 @@ class GlobalRateMap extends ChartComponent {
 
 function makeRangeBox (opts) {
   var lon0 = opts[0][0]
-  var lon1 = opts[0][1]
-  var lat0 = opts[1][0]
+  var lon1 = opts[1][0]
+  var lat0 = opts[0][1]
   var lat1 = opts[1][1]
 
   // to cross antimeridian w/o ambiguity
