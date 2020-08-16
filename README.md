@@ -71,14 +71,7 @@ myChart
     // Range of values to filter the data on. Use this for mobile maps.
     range: {min: 0, max: 1},
 
-    // clip_box helps clip the map to a custom bounding box. 
-    // If not passed, it maps to the full shapefile.
-    // Data is an array as two lng/lat points.
-    // First value is the top left corner
-    // Second value is the bottom right corner
-
-    // Can use http://bboxfinder.com/ to find a bounding box
-     map_custom_projections: {
+    map_custom_projections: {
       // clip_box helps clip the map to a custom bounding box. 
       // If not passed, it maps to the full shapefile.
       // Data is an array as two lng/lat points.
