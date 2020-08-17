@@ -125,7 +125,7 @@ class GlobalRateMap extends ChartComponent {
 
     const path = d3.geoPath().projection(projection);
 
-    svg.selectAll('.disputed').remove();
+    svg.selectAll('.country,.disputed,.centroid').remove();
 
     const countryGroups = g.appendSelect('g.countries')
       .selectAll('path.country')
@@ -156,6 +156,9 @@ class GlobalRateMap extends ChartComponent {
       .attr('d', path)
       .on('mouseover', tipOn)
       .on('mouseout', tipOff);
+
+    countryVoronoiCentroids.exit()
+      .remove();
 
     if (disputed) {
       svg.appendSelect('path.disputed')

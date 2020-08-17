@@ -805,7 +805,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       }
 
       var path = d3.geoPath().projection(projection);
-      svg.selectAll('.disputed').remove();
+      svg.selectAll('.country,.disputed,.centroid').remove();
       var countryGroups = g.appendSelect('g.countries').selectAll('path.country').data(countries.features.filter(function (d) {
         return d.properties.slug !== 'antarctica';
       }), function (d) {
@@ -818,6 +818,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       countryVoronoiCentroids.enter().append('path').attr('class', function (d) {
         return 'voronoi';
       }).merge(countryVoronoiCentroids).style('fill', 'none').style('cursor', 'crosshair').attr('pointer-events', 'all').attr('d', path).on('mouseover', tipOn).on('mouseout', tipOff);
+      countryVoronoiCentroids.exit().remove();
 
       if (disputed) {
         svg.appendSelect('path.disputed').attr('class', 'disputed level-0').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
