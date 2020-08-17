@@ -1,6 +1,41 @@
 $half-white: rgba(255, 255, 255, 0.2);
 
 #{$GlobalRateMap-container} {
+  .key{
+    text-align: center;
+    margin: 0 auto 1rem auto;
+    position: relative;
+    .text-inline{
+      display: inline-block;
+    }
+    .key-text{
+      font-size: .8rem;
+      font-weight: 100;
+      line-height: .9rem;
+      color: hsla(0,0%,100%,.75);
+      margin-bottom: 0;
+      b{
+        font-weight: 700;
+      }
+      &.left-text{
+        text-align: right;
+        width: 150px;
+        vertical-align: top;
+        margin-top: -8px;
+      }
+      &.orange-text{
+        vertical-align: top;
+      }
+      &.white-text{
+        width: 50px;
+        text-align: left;
+        vertical-align: top;
+        margin-top: 4px;
+        margin-left: -2px;
+      }
+    }
+    
+  }
 
   /* Write your chart styles here */
   .country{

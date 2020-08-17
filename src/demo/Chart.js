@@ -31,24 +31,31 @@ class ChartComponent extends React.Component {
       .props({
         geo: defaultGeo,
         // custom_center: [173.640289, 3.403072],
-        map_custom_projections: {
-          center: [0, 5],
-          rotate: [-180, 0],
-          // scale: 150,
-          clip_box: [
-            [111, 2] , [225, -50]
-          ],
-        },
+        // map_custom_projections: {
+        //   center: [0, 5],
+        //   rotate: [-180, 0],
+        //   // scale: 150,
+        //   clip_box: [
+        //     [111, 2] , [225, -50]
+        //   ],
+        // },
       })
       .draw();
 
     // Use it again.
     // setTimeout(() => {
     //   this.chart
-    //     .data([20, 34, 48, 60])
-    //     .props({ fill: base.orange.hex })
+    //     // .data([20, 34, 48, 60])
+    //     .props({map_custom_projections: {
+    //       center: [0, 5],
+    //       rotate: [-180, 0],
+    //       // scale: 150,
+    //       clip_box: [
+    //         [111, 2] , [225, -50]
+    //       ],
+    //     }})
     //     .draw();
-    // }, 1000);
+    // }, 2000);
     // setTimeout(() => {
     //   this.chart
     //     .data([30, 50, 30])

@@ -700,7 +700,15 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9]).range(['#ccc', '#f68e26', '#de2d26']),
       spike_inactive_opacity: 0,
-      disputed_dasharray: [5, 3]
+      disputed_dasharray: [5, 3],
+      key: {
+        text: {
+          red_peak: "Country's average daily infections are <b>more than 90% of its recorded peak</b>",
+          orange_peak: '90 to 75%',
+          white_peak: 'Less than 75%'
+        },
+        width: 80
+      }
     });
 
     return _this;
@@ -726,7 +734,33 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         return d.value >= filterMin && d.value <= filterMax;
       });
       var scaleY = d3.scaleLinear().range([0, props.spike_height]).domain([0, 1]);
-      var svg = this.selection().appendSelect('svg') // see docs in ./utils/d3.js
+      var keyBox = this.selection().appendSelect('div.key');
+      keyBox.appendSelect('p.left-text.text-inline.key-text').html(props.key.text.red_peak);
+      var keySvgContainer = keyBox.appendSelect('div.svg-container.text-inline');
+      var keyGap = props.key.width / 3; // add key box
+
+      var keySvg = keySvgContainer.appendSelect('svg.text-inline').attr('height', props.spike_height + 4).style('fill', 'none').attr('width', props.key.width - keyGap * .27); // add spike 1
+
+      keySvg.appendSelect('path.red-spike').style('stroke', props.spike_color_scale(1)).attr('d', function (d) {
+        var obj = [keyGap * .8, props.spike_height];
+        var value = scaleY(1);
+        return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
+      });
+      keySvg.appendSelect('path.orange-spike').style('stroke', props.spike_color_scale(0.89)).attr('d', function (d, i) {
+        var obj = [keyGap * 1.5, props.spike_height];
+        var value = scaleY(0.89);
+        return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
+      });
+      var bottomKeyText = keySvgContainer.appendSelect('div.bottom-text');
+      bottomKeyText.appendSelect('p.orange-text.key-text.text-inline').style('width', keyGap + 'px').html(props.key.text.orange_peak);
+      keyBox.appendSelect('p.white-text.key-text.text-inline').html(props.key.text.white_peak);
+      keySvg.appendSelect('path.white-spike').style('stroke', props.spike_color_scale(0.74)).attr('d', function (d, i) {
+        var obj = [keyGap * 2.25, props.spike_height];
+        var value = scaleY(0.74);
+        return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
+      });
+      keySvg.appendSelect('line').style('stroke', 'white').attr('x1', 5).attr('x2', keyGap * .8).attr('y1', 0).attr('y1', 0);
+      var svg = this.selection().appendSelect('svg.chart') // see docs in ./utils/d3.js
       .attr('width', width).attr('height', height);
       var g = svg.appendSelect('g');
 
