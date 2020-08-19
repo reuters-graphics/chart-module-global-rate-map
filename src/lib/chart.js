@@ -32,10 +32,11 @@ class GlobalRateMap extends ChartComponent {
     getDataRange: (width) => ({ min: 0, max: 1 }),
     spike_stroke_width: 0.8,
     spike_highlight_stroke_width: 1.2,
+    spike_highlight_fill: true,
     spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9])
       .range(['#ccc', '#f68e26', '#de2d26']),
-    spike_inactive_opacity: 0,
+    spike_inactive_opacity: 0.25,
     disputed_dasharray: [5, 3],
     key: {
       text: {
@@ -190,6 +191,7 @@ class GlobalRateMap extends ChartComponent {
     svg.selectAll('.country,.disputed,.centroid').remove();
 
     const countryGroups = g.appendSelect('g.countries')
+      .style('pointer-events', 'none')
       .selectAll('path.country')
       .data(countries.features.filter(d => d.properties.slug !== 'antarctica'), d => d.properties.slug);
 
@@ -198,33 +200,16 @@ class GlobalRateMap extends ChartComponent {
       .append('path')
       .attr('class', d => `country c-${d.properties.slug} level-0`)
       .merge(countryGroups)
-      .style('pointer-events', 'none')
       .style('stroke', props.map_stroke_color)
       .style('stroke-width', props.map_stroke_width)
       .style('fill', props.map_fill)
       .attr('d', path);
 
-    const countryVoronoiCentroids = g.appendSelect('g.voronoi')
-      .selectAll('path.voronoi')
-      .data(geoVoronoi().polygons(voronoiCentroids).features);
-
-    countryVoronoiCentroids.enter()
-      .append('path')
-      .attr('class', d => 'voronoi')
-      .merge(countryVoronoiCentroids)
-      .style('fill', 'none')
-      .style('cursor', 'crosshair')
-      .attr('pointer-events', 'all')
-      .attr('d', path)
-      .on('mouseover', tipOn)
-      .on('mouseout', tipOff);
-
-    countryVoronoiCentroids.exit()
-      .remove();
 
     if (disputed) {
       svg.appendSelect('path.disputed')
         .attr('class', 'disputed level-0')
+        .style('pointer-events', 'none')
         .style('stroke', props.map_stroke_color)
         .style('stroke-width', props.map_stroke_width)
         .style('fill', 'none')
@@ -233,6 +218,7 @@ class GlobalRateMap extends ChartComponent {
     }
 
     const spikeCentroids = g.appendSelect('g.spike-layer')
+      .style('pointer-events', 'none')
       .selectAll('path.centroid')
       .data(countries.features.filter(d => d.properties.slug !== 'antarctica'))
 
@@ -255,7 +241,26 @@ class GlobalRateMap extends ChartComponent {
       })
       .style('stroke-width', props.spike_stroke_width);
 
+    const countryVoronoiCentroids = g.appendSelect('g.voronoi')
+      .selectAll('path.voronoi')
+      .data(geoVoronoi().polygons(voronoiCentroids).features);
+
+    countryVoronoiCentroids.enter()
+      .append('path')
+      .attr('class', d => 'voronoi')
+      .merge(countryVoronoiCentroids)
+      .style('fill', 'none')
+      .style('cursor', 'crosshair')
+      .attr('pointer-events', 'all')
+      .attr('d', path)
+      .on('mouseover', tipOn)
+      .on('mouseout', tipOff);
+
+    countryVoronoiCentroids.exit()
+      .remove();
+
     const tooltip = g.appendSelect('g.text-group')
+      .style('pointer-events','none')
       .append('text');
 
     function tipOn(voronoiPath) {
@@ -265,10 +270,15 @@ class GlobalRateMap extends ChartComponent {
       if (!value) return;
 
       g.selectAll('path.centroid')
+        .style('fill', 'none')
         .style('opacity', props.spike_inactive_opacity);
 
       g.selectAll(`path.centroid.${properties.slug}`)
         .style('opacity', 1)
+        .style('fill',(d)=>{
+          const o = filteredData.find(e => d.properties.isoAlpha2 === e.key);
+          return o ? props.spike_color_scale(o.value) : null;
+        })
         .classed('active', true)
         .style('stroke-width', props.spike_highlight_stroke_width);
 
@@ -296,6 +306,7 @@ class GlobalRateMap extends ChartComponent {
 
       g.selectAll('path.centroid').style('opacity', 1)
         .classed('active', false)
+        .style('fill','none')
         .style('stroke-width', props.spike_stroke_width);
 
       tooltip.html('');
