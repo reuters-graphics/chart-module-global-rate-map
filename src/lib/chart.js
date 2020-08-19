@@ -27,16 +27,16 @@ class GlobalRateMap extends ChartComponent {
       rotate: null,
     },
     hover_gap: 12.5,
-    spike_height: 30,
-    spike_size: 3,
+    spike_height: 40,
+    spike_size: 3.5,
     getDataRange: (width) => ({ min: 0, max: 1 }),
-    spike_stroke_width: 0.8,
-    spike_highlight_stroke_width: 1.2,
+    spike_stroke_width: 0.5,
+    spike_highlight_stroke_width: 2,
     spike_highlight_fill: true,
     spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9])
       .range(['#ccc', '#f68e26', '#de2d26']),
-    spike_inactive_opacity: 0.25,
+    spike_inactive_opacity: 1,
     disputed_dasharray: [5, 3],
     key: {
       text: {
@@ -205,7 +205,6 @@ class GlobalRateMap extends ChartComponent {
       .style('fill', props.map_fill)
       .attr('d', path);
 
-
     if (disputed) {
       svg.appendSelect('path.disputed')
         .attr('class', 'disputed level-0')
@@ -242,6 +241,9 @@ class GlobalRateMap extends ChartComponent {
       .style('stroke-width', props.spike_stroke_width);
 
     const countryVoronoiCentroids = g.appendSelect('g.voronoi')
+      .style('fill', 'none')
+      .style('cursor', 'crosshair')
+      .style('pointer-events', 'all')
       .selectAll('path.voronoi')
       .data(geoVoronoi().polygons(voronoiCentroids).features);
 
@@ -249,9 +251,6 @@ class GlobalRateMap extends ChartComponent {
       .append('path')
       .attr('class', d => 'voronoi')
       .merge(countryVoronoiCentroids)
-      .style('fill', 'none')
-      .style('cursor', 'crosshair')
-      .attr('pointer-events', 'all')
       .attr('d', path)
       .on('mouseover', tipOn)
       .on('mouseout', tipOff);
@@ -267,20 +266,22 @@ class GlobalRateMap extends ChartComponent {
       const { properties } = voronoiPath.properties.site;
       if (properties.reset) return;
       const { value } = filteredData.find(e => properties.isoAlpha2 === e.key);
-      if (!value) return;
 
+      if (!value && value!=filterMin) return;
+      console.log(properties)
       g.selectAll('path.centroid')
         .style('fill', 'none')
         .style('opacity', props.spike_inactive_opacity);
 
       g.selectAll(`path.centroid.${properties.slug}`)
         .style('opacity', 1)
-        .style('fill',(d)=>{
+        .style('fill', (d) => {
           const o = filteredData.find(e => d.properties.isoAlpha2 === e.key);
           return o ? props.spike_color_scale(o.value) : null;
         })
         .classed('active', true)
-        .style('stroke-width', props.spike_highlight_stroke_width);
+        .style('stroke-width', props.spike_highlight_stroke_width)
+        .raise();
 
       tooltip
         .attr('transform', function(d) {

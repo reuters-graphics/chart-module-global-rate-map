@@ -34,9 +34,13 @@ $half-white: rgba(255, 255, 255, 0.2);
         margin-left: -2px;
       }
     }
-    
+
   }
 
+  path.active.centroid {
+      /*stroke: #2F353F!important*/
+    }
+    
   /* Write your chart styles here */
   .country{
     cursor: crosshair;
