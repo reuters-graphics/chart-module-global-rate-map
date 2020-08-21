@@ -1,4 +1,6 @@
-$half-white: rgba(255, 255, 255, 0.2);
+
+$thin-white: rgba(255, 255, 255, 0.5);
+$faint-white: rgba(255, 255, 255, 0.3);
 
 #{$GlobalRateMap-container} {
   .key{
@@ -38,11 +40,17 @@ $half-white: rgba(255, 255, 255, 0.2);
   }
 
   path.active.centroid {
+      stroke-width: 3!important;
       /*stroke: #2F353F!important*/
     }
-    
+
+  path.country.active {
+    fill: $faint-white;
+    stroke-width: 1px!important;
+  }
+
   /* Write your chart styles here */
-  .country{
+  .voronoi{
     cursor: crosshair;
   }
 
@@ -60,3 +68,5 @@ $half-white: rgba(255, 255, 255, 0.2);
     }
   }
 }
+
+

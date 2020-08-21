@@ -10,7 +10,7 @@ import { geoVoronoi } from 'd3-geo-voronoi';
 
 class GlobalRateMap extends ChartComponent {
   defaultProps = {
-    map_stroke_width: 0.7,
+    map_stroke_width: 1,
     map_stroke_color: '#2f353f',
     map_highlight_stroke_width: 1.2,
     map_fill: 'rgba(153,153,153,0.25)',
@@ -36,16 +36,27 @@ class GlobalRateMap extends ChartComponent {
     spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9])
       .range(['#ccc', '#f68e26', '#de2d26']),
+    spike_width_scale: d3.scaleThreshold() // Can use a scale as a prop!
+      .domain([0.75, 0.9])
+      .range([0.6, 0.9, 1.1]),
+    spike_color_buckets: d3.scaleThreshold() // Can use a scale as a prop!
+      .domain([0.75, 0.9])
+      .range(['white', 'orange', 'red']),
     spike_inactive_opacity: 1,
     disputed_dasharray: [5, 3],
     key: {
       text: {
         red_peak: "Country's average daily infections are <b>more than 90% of its recorded peak</b>",
         orange_peak: '90 to 75%',
-        white_peak: 'Less than 75%'
+        white_peak: 'Less than 75%',
       },
       width: 80,
     },
+    annotations: {
+      name: [],
+      value: [],
+    },
+    interaction: true,
   };
 
   draw() {
@@ -107,12 +118,13 @@ class GlobalRateMap extends ChartComponent {
       });
 
     keySvg.appendSelect('line')
-      .style('stroke','white')
+      .style('stroke', 'white')
       .attr('x1', 5)
-      .attr('x2', keyGap*.8)
-      .attr('y1',0)
-      .attr('y1',0)
+      .attr('x2', keyGap * 0.8)
+      .attr('y1', 0)
+      .attr('y1', 0);
 
+    // SVG begins here
     const svg = this.selection()
       .appendSelect('svg.chart') // see docs in ./utils/d3.js
       .attr('width', width)
@@ -192,6 +204,7 @@ class GlobalRateMap extends ChartComponent {
 
     const countryGroups = g.appendSelect('g.countries')
       .style('pointer-events', 'none')
+      .style('fill', props.map_fill)
       .selectAll('path.country')
       .data(countries.features.filter(d => d.properties.slug !== 'antarctica'), d => d.properties.slug);
 
@@ -202,7 +215,6 @@ class GlobalRateMap extends ChartComponent {
       .merge(countryGroups)
       .style('stroke', props.map_stroke_color)
       .style('stroke-width', props.map_stroke_width)
-      .style('fill', props.map_fill)
       .attr('d', path);
 
     if (disputed) {
@@ -216,10 +228,23 @@ class GlobalRateMap extends ChartComponent {
         .attr('d', path(disputed));
     }
 
+    const sortedCentroids = countryCentroids.sort((a, b) => {
+      const aO = filteredData.filter(e => a.properties.isoAlpha2 === e.key)[0];
+      const bO = filteredData.filter(e => b.properties.isoAlpha2 === e.key)[0];
+      return aO.value - bO.value;
+    });
+
+    sortedCentroids.forEach((d) => {
+      const o = filteredData.filter(e => d.properties.isoAlpha2 === e.key)[0];
+      if (o) {
+        d.value = o.value;
+      }
+    });
+
     const spikeCentroids = g.appendSelect('g.spike-layer')
       .style('pointer-events', 'none')
       .selectAll('path.centroid')
-      .data(countries.features.filter(d => d.properties.slug !== 'antarctica'))
+      .data(sortedCentroids);
 
     spikeCentroids.enter()
       .append('path')
@@ -227,18 +252,16 @@ class GlobalRateMap extends ChartComponent {
       .merge(spikeCentroids)
       .attr('d', function(d) {
         const obj = projection(d.properties.centroid);
-        const o = filteredData.filter(e => d.properties.isoAlpha2 === e.key)[0];
-        if (o) {
-          const value = scaleY(o.value);
-          return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
-        }
+        const value = scaleY(d.value);
+        return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       })
       .style('fill', 'none')
       .style('stroke', function(d) {
-        const o = filteredData.find(e => d.properties.isoAlpha2 === e.key);
-        return o ? props.spike_color_scale(o.value) : null;
+        return d.value ? props.spike_color_scale(d.value) : null;
       })
-      .style('stroke-width', props.spike_stroke_width);
+      .style('stroke-width', function(d) {
+        return d.value ? props.spike_width_scale(d.value) : 0.5;
+      });
 
     const countryVoronoiCentroids = g.appendSelect('g.voronoi')
       .style('fill', 'none')
@@ -267,8 +290,7 @@ class GlobalRateMap extends ChartComponent {
       if (properties.reset) return;
       const { value } = filteredData.find(e => properties.isoAlpha2 === e.key);
 
-      if (!value && value!=filterMin) return;
-      console.log(properties)
+      if (!value && value != filterMin) return;
       g.selectAll('path.centroid')
         .style('fill', 'none')
         .style('opacity', props.spike_inactive_opacity);
@@ -276,11 +298,9 @@ class GlobalRateMap extends ChartComponent {
       g.selectAll(`path.centroid.${properties.slug}`)
         .style('opacity', 1)
         .style('fill', (d) => {
-          const o = filteredData.find(e => d.properties.isoAlpha2 === e.key);
-          return o ? props.spike_color_scale(o.value) : null;
+          return d.value ? props.spike_color_scale(d.value) : null;
         })
         .classed('active', true)
-        .style('stroke-width', props.spike_highlight_stroke_width)
         .raise();
 
       tooltip
@@ -295,10 +315,7 @@ class GlobalRateMap extends ChartComponent {
         `);
 
       g.selectAll(`.country.c-${properties.slug}`)
-        .classed('active', true)
-        .style('stroke-width', props.map_highlight_stroke_width)
-        .style('stroke', props.map_stroke_color_active)
-        .moveToFront();
+        .classed('active', true);
     }
 
     function tipOff(voronoiPath) {
@@ -307,13 +324,11 @@ class GlobalRateMap extends ChartComponent {
 
       g.selectAll('path.centroid').style('opacity', 1)
         .classed('active', false)
-        .style('fill','none')
-        .style('stroke-width', props.spike_stroke_width);
+        .style('fill', 'none')
 
       tooltip.html('');
 
       country.classed('active', false)
-        .style('stroke-width', props.map_stroke_width)
         .style('stroke', props.map_stroke_color);
     }
 

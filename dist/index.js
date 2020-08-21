@@ -670,7 +670,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
     _this = _super.call.apply(_super, [this].concat(args));
 
     _defineProperty(_assertThisInitialized(_this), "defaultProps", {
-      map_stroke_width: 0.7,
+      map_stroke_width: 1,
       map_stroke_color: '#2f353f',
       map_highlight_stroke_width: 1.2,
       map_fill: 'rgba(153,153,153,0.25)',
@@ -687,19 +687,24 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         rotate: null
       },
       hover_gap: 12.5,
-      spike_height: 30,
-      spike_size: 3,
+      spike_height: 40,
+      spike_size: 3.5,
       getDataRange: function getDataRange(width) {
         return {
           min: 0,
           max: 1
         };
       },
-      spike_stroke_width: 0.8,
-      spike_highlight_stroke_width: 1.2,
+      spike_stroke_width: 0.5,
+      spike_highlight_stroke_width: 2,
+      spike_highlight_fill: true,
       spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9]).range(['#ccc', '#f68e26', '#de2d26']),
-      spike_inactive_opacity: 0,
+      spike_width_scale: d3.scaleThreshold() // Can use a scale as a prop!
+      .domain([0.75, 0.9]).range([0.6, 0.9, 1.1]),
+      spike_color_buckets: d3.scaleThreshold() // Can use a scale as a prop!
+      .domain([0.75, 0.9]).range(['white', 'orange', 'red']),
+      spike_inactive_opacity: 1,
       disputed_dasharray: [5, 3],
       key: {
         text: {
@@ -708,7 +713,12 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
           white_peak: 'Less than 75%'
         },
         width: 80
-      }
+      },
+      annotations: {
+        name: [],
+        value: []
+      },
+      interaction: true
     });
 
     return _this;
@@ -759,7 +769,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var value = scaleY(0.74);
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       });
-      keySvg.appendSelect('line').style('stroke', 'white').attr('x1', 5).attr('x2', keyGap * .8).attr('y1', 0).attr('y1', 0);
+      keySvg.appendSelect('line').style('stroke', 'white').attr('x1', 5).attr('x2', keyGap * 0.8).attr('y1', 0).attr('y1', 0); // SVG begins here
+
       var svg = this.selection().appendSelect('svg.chart') // see docs in ./utils/d3.js
       .attr('width', width).attr('height', height);
       var g = svg.appendSelect('g');
@@ -840,46 +851,55 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
 
       var path = d3.geoPath().projection(projection);
       svg.selectAll('.country,.disputed,.centroid').remove();
-      var countryGroups = g.appendSelect('g.countries').selectAll('path.country').data(countries.features.filter(function (d) {
+      var countryGroups = g.appendSelect('g.countries').style('pointer-events', 'none').style('fill', props.map_fill).selectAll('path.country').data(countries.features.filter(function (d) {
         return d.properties.slug !== 'antarctica';
       }), function (d) {
         return d.properties.slug;
       });
       countryGroups.enter().append('path').attr('class', function (d) {
         return "country c-".concat(d.properties.slug, " level-0");
-      }).merge(countryGroups).style('pointer-events', 'none').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', props.map_fill).attr('d', path);
-      var countryVoronoiCentroids = g.appendSelect('g.voronoi').selectAll('path.voronoi').data(d3GeoVoronoi.geoVoronoi().polygons(voronoiCentroids).features);
-      countryVoronoiCentroids.enter().append('path').attr('class', function (d) {
-        return 'voronoi';
-      }).merge(countryVoronoiCentroids).style('fill', 'none').style('cursor', 'crosshair').attr('pointer-events', 'all').attr('d', path).on('mouseover', tipOn).on('mouseout', tipOff);
-      countryVoronoiCentroids.exit().remove();
+      }).merge(countryGroups).style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).attr('d', path);
 
       if (disputed) {
-        svg.appendSelect('path.disputed').attr('class', 'disputed level-0').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
+        svg.appendSelect('path.disputed').attr('class', 'disputed level-0').style('pointer-events', 'none').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
       }
 
-      var spikeCentroids = g.appendSelect('g.spike-layer').selectAll('path.centroid').data(countries.features.filter(function (d) {
-        return d.properties.slug !== 'antarctica';
-      }));
-      spikeCentroids.enter().append('path').attr('class', function (d) {
-        return d.properties.slug + ' centroid';
-      }).merge(spikeCentroids).attr('d', function (d) {
-        var obj = projection(d.properties.centroid);
+      var sortedCentroids = countryCentroids.sort(function (a, b) {
+        var aO = filteredData.filter(function (e) {
+          return a.properties.isoAlpha2 === e.key;
+        })[0];
+        var bO = filteredData.filter(function (e) {
+          return b.properties.isoAlpha2 === e.key;
+        })[0];
+        return aO.value - bO.value;
+      });
+      sortedCentroids.forEach(function (d) {
         var o = filteredData.filter(function (e) {
           return d.properties.isoAlpha2 === e.key;
         })[0];
 
         if (o) {
-          var value = scaleY(o.value);
-          return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
+          d.value = o.value;
         }
+      });
+      var spikeCentroids = g.appendSelect('g.spike-layer').style('pointer-events', 'none').selectAll('path.centroid').data(sortedCentroids);
+      spikeCentroids.enter().append('path').attr('class', function (d) {
+        return d.properties.slug + ' centroid';
+      }).merge(spikeCentroids).attr('d', function (d) {
+        var obj = projection(d.properties.centroid);
+        var value = scaleY(d.value);
+        return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       }).style('fill', 'none').style('stroke', function (d) {
-        var o = filteredData.find(function (e) {
-          return d.properties.isoAlpha2 === e.key;
-        });
-        return o ? props.spike_color_scale(o.value) : null;
-      }).style('stroke-width', props.spike_stroke_width);
-      var tooltip = g.appendSelect('g.text-group').append('text');
+        return d.value ? props.spike_color_scale(d.value) : null;
+      }).style('stroke-width', function (d) {
+        return d.value ? props.spike_width_scale(d.value) : 0.5;
+      });
+      var countryVoronoiCentroids = g.appendSelect('g.voronoi').style('fill', 'none').style('cursor', 'crosshair').style('pointer-events', 'all').selectAll('path.voronoi').data(d3GeoVoronoi.geoVoronoi().polygons(voronoiCentroids).features);
+      countryVoronoiCentroids.enter().append('path').attr('class', function (d) {
+        return 'voronoi';
+      }).merge(countryVoronoiCentroids).attr('d', path).on('mouseover', tipOn).on('mouseout', tipOff);
+      countryVoronoiCentroids.exit().remove();
+      var tooltip = g.appendSelect('g.text-group').style('pointer-events', 'none').append('text');
 
       function tipOn(voronoiPath) {
         var properties = voronoiPath.properties.site.properties;
@@ -890,24 +910,26 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         }),
             value = _filteredData$find.value;
 
-        if (!value) return;
-        g.selectAll('path.centroid').style('opacity', props.spike_inactive_opacity);
-        g.selectAll("path.centroid.".concat(properties.slug)).style('opacity', 1).classed('active', true).style('stroke-width', props.spike_highlight_stroke_width);
+        if (!value && value != filterMin) return;
+        g.selectAll('path.centroid').style('fill', 'none').style('opacity', props.spike_inactive_opacity);
+        g.selectAll("path.centroid.".concat(properties.slug)).style('opacity', 1).style('fill', function (d) {
+          return d.value ? props.spike_color_scale(d.value) : null;
+        }).classed('active', true).raise();
         tooltip.attr('transform', function (d) {
           var o = projection(properties.centroid);
           return "translate(".concat(o[0], ",").concat(o[1] + props.hover_gap, ")");
         }).style('text-anchor', 'middle').html(function (d) {
           return "\n          <tspan x=\"0\" y=\"0\">".concat(properties.translations[props.locale], "</tspan>\n          <tspan x=\"0\" dy=\"1em\">").concat(Math.round(value * 100).toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">of peak</tspan>\n        ");
         });
-        g.selectAll(".country.c-".concat(properties.slug)).classed('active', true).style('stroke-width', props.map_highlight_stroke_width).style('stroke', props.map_stroke_color_active).moveToFront();
+        g.selectAll(".country.c-".concat(properties.slug)).classed('active', true);
       }
 
       function tipOff(voronoiPath) {
         var properties = voronoiPath.properties.site.properties;
         var country = g.selectAll(".country.c-".concat(properties.slug));
-        g.selectAll('path.centroid').style('opacity', 1).classed('active', false).style('stroke-width', props.spike_stroke_width);
+        g.selectAll('path.centroid').style('opacity', 1).classed('active', false).style('fill', 'none');
         tooltip.html('');
-        country.classed('active', false).style('stroke-width', props.map_stroke_width).style('stroke', props.map_stroke_color);
+        country.classed('active', false).style('stroke', props.map_stroke_color);
       }
 
       return this;
