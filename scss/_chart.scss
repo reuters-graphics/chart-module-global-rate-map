@@ -50,9 +50,6 @@ $faint-white: rgba(255, 255, 255, 0.3);
   }
 
   /* Write your chart styles here */
-  .voronoi{
-    cursor: crosshair;
-  }
 
   .text-group{
     text{
@@ -66,6 +63,17 @@ $faint-white: rgba(255, 255, 255, 0.3);
         font-size: 0.65rem;
       }
     }
+  }
+  .annotation{
+      text-anchor: middle;
+      fill: hsla(0,0%,100%,.75);
+      font-family: $font-family-sans-serif;
+
+      font-size: 1rem;
+      text-shadow: 2px 2px 2px #333, 2px 2px 2px #333, 0 -2px 0 #333, -2px 0 0 #333;
+      tspan.smaller{
+        font-size: 0.65rem;
+      }
   }
 }
 

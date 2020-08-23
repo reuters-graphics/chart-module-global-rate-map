@@ -1,11 +1,11 @@
 import * as topojson from 'topojson-client';
 
-// import AtlasMetadataClient from '@reuters-graphics/graphics-atlas-client';
+import AtlasMetadataClient from '@reuters-graphics/graphics-atlas-client';
 import ChartComponent from './base/ChartComponent';
 import d3 from './utils/d3';
 import { geoVoronoi } from 'd3-geo-voronoi';
 
-// const client = new AtlasMetadataClient();
+const Atlas = new AtlasMetadataClient();
 // import topology from '@reuters-graphics/graphics-atlas-client/topojson/global.110m.json';
 
 class GlobalRateMap extends ChartComponent {
@@ -27,7 +27,7 @@ class GlobalRateMap extends ChartComponent {
       rotate: null,
     },
     hover_gap: 12.5,
-    spike_height: 40,
+    spike_height: 30,
     spike_size: 3.5,
     getDataRange: (width) => ({ min: 0, max: 1 }),
     spike_stroke_width: 0.5,
@@ -71,7 +71,7 @@ class GlobalRateMap extends ChartComponent {
 
     const scaleY = d3.scaleLinear().range([0, props.spike_height]).domain([0, 1]);
     const keyBox = this.selection()
-      .appendSelect('div.key')
+      .appendSelect('div.key');
 
     keyBox.appendSelect('p.left-text.text-inline.key-text')
       .html(props.key.text.red_peak);
@@ -82,13 +82,13 @@ class GlobalRateMap extends ChartComponent {
     const keySvg = keySvgContainer.appendSelect('svg.text-inline')
       .attr('height', props.spike_height + 4)
       .style('fill', 'none')
-      .attr('width', props.key.width - (keyGap * .27));
+      .attr('width', props.key.width - (keyGap * 0.27));
 
     // add spike 1
     keySvg.appendSelect('path.red-spike')
       .style('stroke', props.spike_color_scale(1))
       .attr('d', (d) => {
-        const obj = [keyGap * .8, props.spike_height];
+        const obj = [keyGap * 0.8, props.spike_height];
         const value = scaleY(1);
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       });
@@ -265,7 +265,7 @@ class GlobalRateMap extends ChartComponent {
 
     const countryVoronoiCentroids = g.appendSelect('g.voronoi')
       .style('fill', 'none')
-      .style('cursor', 'crosshair')
+      .style('cursor', props.interaction?'crosshair':'default')
       .style('pointer-events', 'all')
       .selectAll('path.voronoi')
       .data(geoVoronoi().polygons(voronoiCentroids).features);
@@ -275,25 +275,95 @@ class GlobalRateMap extends ChartComponent {
       .attr('class', d => 'voronoi')
       .merge(countryVoronoiCentroids)
       .attr('d', path)
-      .on('mouseover', tipOn)
-      .on('mouseout', tipOff);
+      .on('mouseover', (d) => {
+        if (props.interaction) {
+          tipOn(d);
+        }
+      })
+      .on('mouseout', (d) => {
+        if (props.interaction) {
+          tipOff(d);
+        }
+      });
 
     countryVoronoiCentroids.exit()
       .remove();
 
     const tooltip = g.appendSelect('g.text-group')
-      .style('pointer-events','none')
+      .style('pointer-events', 'none')
       .append('text');
+
+    const annotationData = props.annotations.name.map((d) => {
+      const c = Atlas.getCountry(d);
+      const geo = countryCentroids.filter(e => e.properties.isoAlpha2 === c.isoAlpha2)[0]
+      return {
+        countryMeta: c,
+        countryGeo: geo,
+      };
+    });
+
+    const annotationNumData = props.annotations.value.map((d) => {
+      const c = Atlas.getCountry(d);
+      const geo = sortedCentroids.filter(e => e.properties.isoAlpha2 === c.isoAlpha2)[0]
+      return {
+        countryMeta: c,
+        countryGeo: geo,
+      };
+    });
+
+    const annotations = g.appendSelect('g.name-annotations')
+      .style('pointer-events', 'none')
+      .selectAll('text.annotation')
+      .data(annotationData, d => d.countryMeta.isoAlpha2);
+
+    annotations.enter()
+      .append('text')
+      .attr('class', 'annotation')
+      .merge(annotations)
+      .attr('transform', (d) => {
+        const p = projection(d.countryGeo.geometry.coordinates);
+        return `translate(${p[0]},${p[1] + props.hover_gap})`;
+      })
+      .text((d) => {
+        return d.countryMeta.translations[props.locale];
+      });
+
+    annotations.exit()
+      .remove();
+
+    const annotationsNumbers = g.appendSelect('g.number-annotations')
+      .style('pointer-events', 'none')
+      .selectAll('text.annotation')
+      .data(annotationNumData);
+
+    annotationsNumbers.enter()
+      .append('text')
+      .attr('class', 'annotation')
+      .merge(annotationsNumbers)
+      .attr('transform', (d) => {
+        const p = projection(d.countryGeo.geometry.coordinates);
+        return `translate(${p[0]},${p[1] + props.hover_gap})`;
+      })
+      .attr('dy', '1em')
+      .html((d) => {
+        return `<tspan>${(Math.round(d.countryGeo.value * 100)).toLocaleString(props.locale)}%</tspan> <tspan class="smaller">of peak</tspan>`;
+      });
+
+    annotationsNumbers.exit()
+      .remove();
 
     function tipOn(voronoiPath) {
       const { properties } = voronoiPath.properties.site;
       if (properties.reset) return;
       const { value } = filteredData.find(e => properties.isoAlpha2 === e.key);
 
-      if (!value && value != filterMin) return;
+      if (!value && value !== filterMin) return;
       g.selectAll('path.centroid')
         .style('fill', 'none')
         .style('opacity', props.spike_inactive_opacity);
+
+      g.selectAll('.name-annotations,.number-annotations')
+        .style('opacity',0)
 
       g.selectAll(`path.centroid.${properties.slug}`)
         .style('opacity', 1)
@@ -319,12 +389,16 @@ class GlobalRateMap extends ChartComponent {
     }
 
     function tipOff(voronoiPath) {
+
       const { properties } = voronoiPath.properties.site;
       const country = g.selectAll(`.country.c-${properties.slug}`);
 
       g.selectAll('path.centroid').style('opacity', 1)
         .classed('active', false)
-        .style('fill', 'none')
+        .style('fill', 'none');
+
+      g.selectAll('.name-annotations,.number-annotations')
+        .style('opacity',1);
 
       tooltip.html('');
 
@@ -336,25 +410,25 @@ class GlobalRateMap extends ChartComponent {
   }
 }
 
-function makeRangeBox (opts) {
-  var lon0 = opts[0][0]
-  var lon1 = opts[1][0]
-  var lat0 = opts[0][1]
-  var lat1 = opts[1][1]
+function makeRangeBox(opts) {
+  var lon0 = opts[0][0];
+  var lon1 = opts[1][0];
+  var lat0 = opts[0][1];
+  var lat1 = opts[1][1];
 
   // to cross antimeridian w/o ambiguity
   if (lon0 > 0 && lon1 < 0) {
-    lon1 += 360
+    lon1 += 360;
   }
 
   // to make lat span unambiguous
   if (lat0 > lat1) {
-    var tmp = lat0
-    lat0 = lat1
-    lat1 = tmp
+    var tmp = lat0;
+    lat0 = lat1;
+    lat1 = tmp;
   }
 
-  var dlon4 = (lon1 - lon0) / 4
+  var dlon4 = (lon1 - lon0) / 4;
 
   return {
     type: 'Polygon',

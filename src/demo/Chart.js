@@ -5,16 +5,15 @@ import debounce from 'lodash/debounce';
 import defaultData from './defaultData.json';
 import defaultGeo from './topo.json';
 
-const newData = []
+const newData = [];
 for (var key of Object.keys(defaultData.distributionRanks.cases)) {
   newData.push({
-    'key': key,
-    'value': defaultData.distributionRanks.cases[key],
+    key,
+    value: defaultData.distributionRanks.cases[key],
   });
 }
-console.log(defaultGeo)
 class ChartComponent extends React.Component {
-  state = { width: '' };
+  state = { width: '992' };
   chartContainer = React.createRef();
 
   // Instantiate and add our chart class to this component.
@@ -30,6 +29,11 @@ class ChartComponent extends React.Component {
       .data(newData)
       .props({
         geo: defaultGeo,
+        annotations: {
+          name: ['US', 'IN', 'AU'],
+          value: ['CA','AU'],
+        },
+        interaction: false,
         // custom_center: [173.640289, 3.403072],
         // map_custom_projections: {
         //   center: [0, 5],
