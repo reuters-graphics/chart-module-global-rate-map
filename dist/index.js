@@ -927,6 +927,12 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
           countryGeo: geo
         };
       });
+      annotationData = annotationData.filter(function (d) {
+        return d.countryMeta && d.countryGeo;
+      });
+      annotationNumData = annotationNumData.filter(function (d) {
+        return d.countryMeta && d.countryGeo;
+      });
       var annotations = g.appendSelect('g.name-annotations').style('pointer-events', 'none').selectAll('text.annotation').data(annotationData, function (d) {
         return d.countryMeta.isoAlpha2;
       });

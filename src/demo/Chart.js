@@ -4,6 +4,7 @@ import React from 'react';
 import debounce from 'lodash/debounce';
 import defaultData from './defaultData.json';
 import defaultGeo from './topo.json';
+import oceania from './oceania.json';
 
 const newData = [];
 for (var key of Object.keys(defaultData.distributionRanks.cases)) {
@@ -47,19 +48,24 @@ class ChartComponent extends React.Component {
       .draw();
 
     // Use it again.
-    // setTimeout(() => {
-    //   this.chart
-    //     // .data([20, 34, 48, 60])
-    //     .props({map_custom_projections: {
-    //       center: [0, 5],
-    //       rotate: [-180, 0],
-    //       // scale: 150,
-    //       clip_box: [
-    //         [111, 2] , [225, -50]
-    //       ],
-    //     }})
-    //     .draw();
-    // }, 2000);
+    setTimeout(() => {
+      this.chart
+        .data(newData)
+        .props({
+          // geo: oceania,
+          map_custom_projections: {
+            center: [0, 5],
+            rotate: [-180, 0],
+            clip_box: [[111, 2], [225, -50]],
+          },
+          interaction: true,
+          annotations: {
+            name: ['US'],
+            value: ['AU'],
+          },
+        })
+        .draw();
+    }, 2000);
     // setTimeout(() => {
     //   this.chart
     //     .data([30, 50, 30])

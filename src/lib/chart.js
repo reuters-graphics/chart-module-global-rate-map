@@ -272,13 +272,13 @@ class GlobalRateMap extends ChartComponent {
       .attr('class', d => 'voronoi')
       .merge(countryVoronoiCentroids)
       .attr('d', path)
-      .on('mouseover', (d) => {
-        if (props.interaction) {
+      .on('mouseover', d => {
+        if (props.interaction){
           tipOn(d);
         }
       })
-      .on('mouseout', (d) => {
-        if (props.interaction) {
+      .on('mouseout', d => {
+        if (props.interaction){
           tipOff(d);
         }
       });
@@ -290,7 +290,7 @@ class GlobalRateMap extends ChartComponent {
       .style('pointer-events', 'none')
       .append('text');
 
-    const annotationData = props.annotations.name.map((d) => {
+    let annotationData = props.annotations.name.map((d) => {
       const c = Atlas.getCountry(d);
       const geo = countryCentroids.filter(e => e.properties.isoAlpha2 === c.isoAlpha2)[0]
       return {
@@ -299,7 +299,7 @@ class GlobalRateMap extends ChartComponent {
       };
     });
 
-    const annotationNumData = props.annotations.value.map((d) => {
+    let annotationNumData = props.annotations.value.map((d) => {
       const c = Atlas.getCountry(d);
       const geo = sortedCentroids.filter(e => e.properties.isoAlpha2 === c.isoAlpha2)[0]
       return {
@@ -307,6 +307,9 @@ class GlobalRateMap extends ChartComponent {
         countryGeo: geo,
       };
     });
+
+    annotationData = annotationData.filter(d => d.countryMeta && d.countryGeo)
+    annotationNumData = annotationNumData.filter(d => d.countryMeta && d.countryGeo)
 
     const annotations = g.appendSelect('g.name-annotations')
       .style('pointer-events', 'none')
