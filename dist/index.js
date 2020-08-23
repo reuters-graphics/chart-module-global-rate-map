@@ -688,7 +688,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         rotate: null
       },
       hover_gap: 12.5,
-      spike_height: 30,
+      spike_height: 35,
       spike_size: 3.5,
       getDataRange: function getDataRange(width) {
         return {
@@ -707,11 +707,12 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       disputed_dasharray: [5, 3],
       key: {
         text: {
-          red_peak: "Country's average daily infections are <b>more than 90% of its recorded peak</b>",
+          main_text: 'How close is the current weekly average to the country’s peak',
+          red_peak: '>90%',
           orange_peak: '90 to 75%',
-          white_peak: 'Less than 75%'
+          white_peak: '<75%'
         },
-        width: 80
+        width: 140
       },
       annotations: {
         name: [],
@@ -746,31 +747,49 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       });
       var scaleY = d3.scaleLinear().range([0, props.spike_height]).domain([0, 1]);
       var keyBox = this.selection().appendSelect('div.key');
-      keyBox.appendSelect('p.left-text.text-inline.key-text').html(props.key.text.red_peak);
+      keyBox.appendSelect('p.left-text.text-inline.key-text').html(props.key.text.main_text);
       var keySvgContainer = keyBox.appendSelect('div.svg-container.text-inline');
       var keyGap = props.key.width / 3; // add key box
 
-      var keySvg = keySvgContainer.appendSelect('svg.text-inline').attr('height', props.spike_height + 4).style('fill', 'none').attr('width', props.key.width - keyGap * 0.27); // add spike 1
+      var keySvg = keySvgContainer.appendSelect('svg.text-inline').attr('height', props.spike_height + 6).style('fill', 'none').attr('width', props.key.width - keyGap * 0.27);
+      keySvg.appendSelect('defs').appendSelect('marker.top').attr('id', 'arrow-up').attr('markerWidth', 12).attr('markerHeight', 10).attr('refY', 5).attr('refX', 6).attr('orient', 'auto').appendSelect('path.up').style('stroke', 'white').style('stroke-width', 0.6).attr('d', 'M0 0 L6 5 L0 10');
+      keySvg.select('defs').appendSelect('marker.down').attr('id', 'arrow-down').attr('markerWidth', 12).attr('markerHeight', 10).attr('refY', 5).attr('refX', 0).attr('orient', 'auto').appendSelect('path.down').style('stroke', 'white').style('stroke-width', 0.6).attr('d', 'M6 0 L0 5 L6 10'); // add spike 1
 
-      keySvg.appendSelect('path.red-spike').style('stroke', props.spike_color_scale(1)).attr('d', function (d) {
-        var obj = [keyGap * 0.8, props.spike_height];
+      keySvg.appendSelect('path.red-spike.high').style('stroke', props.spike_color_scale(1)).attr('d', function (d) {
+        var obj = [keyGap * 0.7, props.spike_height];
         var value = scaleY(1);
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       });
-      keySvg.appendSelect('path.orange-spike').style('stroke', props.spike_color_scale(0.89)).attr('d', function (d, i) {
+      keySvg.appendSelect('path.red-spike.low').style('stroke', props.spike_color_scale(0.9)).style('fill', props.spike_color_scale(0.9)).attr('d', function (d) {
+        var obj = [keyGap * 0.7 + props.spike_size * 1.4, props.spike_height];
+        var value = scaleY(0.9);
+        return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
+      });
+      keySvg.appendSelect('path.orange-spike.high').style('stroke', props.spike_color_scale(0.89)).attr('d', function (d, i) {
         var obj = [keyGap * 1.5, props.spike_height];
         var value = scaleY(0.89);
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       });
-      var bottomKeyText = keySvgContainer.appendSelect('div.bottom-text');
-      bottomKeyText.appendSelect('p.orange-text.key-text.text-inline').style('width', keyGap + 'px').html(props.key.text.orange_peak);
-      keyBox.appendSelect('p.white-text.key-text.text-inline').html(props.key.text.white_peak);
-      keySvg.appendSelect('path.white-spike').style('stroke', props.spike_color_scale(0.74)).attr('d', function (d, i) {
-        var obj = [keyGap * 2.25, props.spike_height];
+      keySvg.appendSelect('path.orange-spike.low').style('stroke', props.spike_color_scale(0.75)).style('fill', props.spike_color_scale(0.75)).attr('d', function (d) {
+        var obj = [keyGap * 1.5 + props.spike_size * 1.4, props.spike_height];
+        var value = scaleY(0.75);
+        return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
+      });
+      keySvg.appendSelect('path.white-spike.high').style('stroke', props.spike_color_scale(0.74)).attr('d', function (d, i) {
+        var obj = [keyGap * 2.3, props.spike_height];
         var value = scaleY(0.74);
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       });
-      keySvg.appendSelect('line').style('stroke', 'white').attr('x1', 5).attr('x2', keyGap * 0.8).attr('y1', 0).attr('y1', 0); // SVG begins here
+      keySvg.appendSelect('path.white-spike.low').style('stroke', '#ccc').style('fill', '#ccc').attr('d', function (d, i) {
+        var obj = [keyGap * 2.3 + props.spike_size * 1.4, props.spike_height];
+        var value = scaleY(0);
+        return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
+      });
+      keySvg.appendSelect('line').style('stroke', 'white').style('stroke-width', .7).attr('x1', 10).attr('x2', 10).attr('y1', 7).attr('y1', props.spike_height).attr('marker-end', 'url(#arrow-up)').attr('marker-start', 'url(#arrow-down)');
+      var bottomKeyText = keySvgContainer.appendSelect('div.bottom-text').style('padding-left', "".concat(keyGap * .4, "px"));
+      bottomKeyText.appendSelect('p.red-text.key-text.text-inline').style('width', "".concat(keyGap * .8, "px")).html(props.key.text.red_peak);
+      bottomKeyText.appendSelect('p.orange-text.key-text.text-inline').style('width', "".concat(keyGap * .8, "px")).html(props.key.text.orange_peak);
+      bottomKeyText.appendSelect('p.white-text.key-text.text-inline').style('width', "".concat(keyGap * .8, "px")).html(props.key.text.white_peak); // SVG begins here
 
       var svg = this.selection().appendSelect('svg.chart') // see docs in ./utils/d3.js
       .attr('width', width).attr('height', height);

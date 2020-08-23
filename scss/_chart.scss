@@ -25,16 +25,10 @@ $faint-white: rgba(255, 255, 255, 0.3);
         vertical-align: top;
         margin-top: -8px;
       }
-      &.orange-text{
+      &.orange-text,&.white-text,&.red-text{
         vertical-align: top;
       }
-      &.white-text{
-        width: 50px;
-        text-align: left;
-        vertical-align: top;
-        margin-top: 4px;
-        margin-left: -2px;
-      }
+      
     }
 
   }
