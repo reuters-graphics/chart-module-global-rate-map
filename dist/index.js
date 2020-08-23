@@ -2,6 +2,7 @@
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
+var AtlasMetadataClient = _interopDefault(require('@reuters-graphics/graphics-atlas-client'));
 var d3 = require('d3');
 var merge = _interopDefault(require('lodash/merge'));
 var d3GeoVoronoi = require('d3-geo-voronoi');
@@ -651,7 +652,7 @@ var ChartComponent = /*#__PURE__*/function () {
   return ChartComponent;
 }();
 
-// import topology from '@reuters-graphics/graphics-atlas-client/topojson/global.110m.json';
+var Atlas = new AtlasMetadataClient(); // import topology from '@reuters-graphics/graphics-atlas-client/topojson/global.110m.json';
 
 var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
   _inherits(GlobalRateMap, _ChartComponent);
@@ -687,7 +688,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         rotate: null
       },
       hover_gap: 12.5,
-      spike_height: 40,
+      spike_height: 30,
       spike_size: 3.5,
       getDataRange: function getDataRange(width) {
         return {
@@ -700,10 +701,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       spike_highlight_fill: true,
       spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9]).range(['#ccc', '#f68e26', '#de2d26']),
-      spike_width_scale: d3.scaleThreshold() // Can use a scale as a prop!
+      spike_stroke_width_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9]).range([0.6, 0.9, 1.1]),
-      spike_color_buckets: d3.scaleThreshold() // Can use a scale as a prop!
-      .domain([0.75, 0.9]).range(['white', 'orange', 'red']),
       spike_inactive_opacity: 1,
       disputed_dasharray: [5, 3],
       key: {
@@ -749,10 +748,10 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       var keySvgContainer = keyBox.appendSelect('div.svg-container.text-inline');
       var keyGap = props.key.width / 3; // add key box
 
-      var keySvg = keySvgContainer.appendSelect('svg.text-inline').attr('height', props.spike_height + 4).style('fill', 'none').attr('width', props.key.width - keyGap * .27); // add spike 1
+      var keySvg = keySvgContainer.appendSelect('svg.text-inline').attr('height', props.spike_height + 4).style('fill', 'none').attr('width', props.key.width - keyGap * 0.27); // add spike 1
 
       keySvg.appendSelect('path.red-spike').style('stroke', props.spike_color_scale(1)).attr('d', function (d) {
-        var obj = [keyGap * .8, props.spike_height];
+        var obj = [keyGap * 0.8, props.spike_height];
         var value = scaleY(1);
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       });
@@ -892,14 +891,60 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       }).style('fill', 'none').style('stroke', function (d) {
         return d.value ? props.spike_color_scale(d.value) : null;
       }).style('stroke-width', function (d) {
-        return d.value ? props.spike_width_scale(d.value) : 0.5;
+        return d.value ? props.spike_stroke_width_scale(d.value) : 0.5;
       });
-      var countryVoronoiCentroids = g.appendSelect('g.voronoi').style('fill', 'none').style('cursor', 'crosshair').style('pointer-events', 'all').selectAll('path.voronoi').data(d3GeoVoronoi.geoVoronoi().polygons(voronoiCentroids).features);
+      var countryVoronoiCentroids = g.appendSelect('g.voronoi').style('fill', 'none').style('cursor', props.interaction ? 'crosshair' : 'default').style('pointer-events', 'all').selectAll('path.voronoi').data(d3GeoVoronoi.geoVoronoi().polygons(voronoiCentroids).features);
       countryVoronoiCentroids.enter().append('path').attr('class', function (d) {
         return 'voronoi';
-      }).merge(countryVoronoiCentroids).attr('d', path).on('mouseover', tipOn).on('mouseout', tipOff);
+      }).merge(countryVoronoiCentroids).attr('d', path).on('mouseover', function (d) {
+        if (props.interaction) {
+          tipOn(d);
+        }
+      }).on('mouseout', function (d) {
+        if (props.interaction) {
+          tipOff(d);
+        }
+      });
       countryVoronoiCentroids.exit().remove();
       var tooltip = g.appendSelect('g.text-group').style('pointer-events', 'none').append('text');
+      var annotationData = props.annotations.name.map(function (d) {
+        var c = Atlas.getCountry(d);
+        var geo = countryCentroids.filter(function (e) {
+          return e.properties.isoAlpha2 === c.isoAlpha2;
+        })[0];
+        return {
+          countryMeta: c,
+          countryGeo: geo
+        };
+      });
+      var annotationNumData = props.annotations.value.map(function (d) {
+        var c = Atlas.getCountry(d);
+        var geo = sortedCentroids.filter(function (e) {
+          return e.properties.isoAlpha2 === c.isoAlpha2;
+        })[0];
+        return {
+          countryMeta: c,
+          countryGeo: geo
+        };
+      });
+      var annotations = g.appendSelect('g.name-annotations').style('pointer-events', 'none').selectAll('text.annotation').data(annotationData, function (d) {
+        return d.countryMeta.isoAlpha2;
+      });
+      annotations.enter().append('text').attr('class', 'annotation').merge(annotations).attr('transform', function (d) {
+        var p = projection(d.countryGeo.geometry.coordinates);
+        return "translate(".concat(p[0], ",").concat(p[1] + props.hover_gap, ")");
+      }).text(function (d) {
+        return d.countryMeta.translations[props.locale];
+      });
+      annotations.exit().remove();
+      var annotationsNumbers = g.appendSelect('g.number-annotations').style('pointer-events', 'none').selectAll('text.annotation').data(annotationNumData);
+      annotationsNumbers.enter().append('text').attr('class', 'annotation').merge(annotationsNumbers).attr('transform', function (d) {
+        var p = projection(d.countryGeo.geometry.coordinates);
+        return "translate(".concat(p[0], ",").concat(p[1] + props.hover_gap, ")");
+      }).attr('dy', '1em').html(function (d) {
+        return "<tspan>".concat(Math.round(d.countryGeo.value * 100).toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">of peak</tspan>");
+      });
+      annotationsNumbers.exit().remove();
 
       function tipOn(voronoiPath) {
         var properties = voronoiPath.properties.site.properties;
@@ -910,8 +955,9 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         }),
             value = _filteredData$find.value;
 
-        if (!value && value != filterMin) return;
+        if (!value && value !== filterMin) return;
         g.selectAll('path.centroid').style('fill', 'none').style('opacity', props.spike_inactive_opacity);
+        g.selectAll('.name-annotations,.number-annotations').style('opacity', 0);
         g.selectAll("path.centroid.".concat(properties.slug)).style('opacity', 1).style('fill', function (d) {
           return d.value ? props.spike_color_scale(d.value) : null;
         }).classed('active', true).raise();
@@ -928,6 +974,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var properties = voronoiPath.properties.site.properties;
         var country = g.selectAll(".country.c-".concat(properties.slug));
         g.selectAll('path.centroid').style('opacity', 1).classed('active', false).style('fill', 'none');
+        g.selectAll('.name-annotations,.number-annotations').style('opacity', 1);
         tooltip.html('');
         country.classed('active', false).style('stroke', props.map_stroke_color);
       }

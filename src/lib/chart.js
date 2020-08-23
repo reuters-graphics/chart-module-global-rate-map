@@ -36,12 +36,9 @@ class GlobalRateMap extends ChartComponent {
     spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9])
       .range(['#ccc', '#f68e26', '#de2d26']),
-    spike_width_scale: d3.scaleThreshold() // Can use a scale as a prop!
+    spike_stroke_width_scale: d3.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9])
       .range([0.6, 0.9, 1.1]),
-    spike_color_buckets: d3.scaleThreshold() // Can use a scale as a prop!
-      .domain([0.75, 0.9])
-      .range(['white', 'orange', 'red']),
     spike_inactive_opacity: 1,
     disputed_dasharray: [5, 3],
     key: {
@@ -260,7 +257,7 @@ class GlobalRateMap extends ChartComponent {
         return d.value ? props.spike_color_scale(d.value) : null;
       })
       .style('stroke-width', function(d) {
-        return d.value ? props.spike_width_scale(d.value) : 0.5;
+        return d.value ? props.spike_stroke_width_scale(d.value) : 0.5;
       });
 
     const countryVoronoiCentroids = g.appendSelect('g.voronoi')

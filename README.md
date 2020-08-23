@@ -93,6 +93,16 @@ myChart
 
       // custom rotate of the map
       rotate: null,
+
+      annotations: {
+        // An array of all places (names, codes or slugs) for which you want a fixed name label
+        name: ['india','RU','US'],
+        // An array of all places (names, codes or slugs) for which you want a fixed value label
+        value: ['RU','Brazil'],
+      },
+
+      // If you want interaction on hover
+      interaction: true,
     },
   })
   .draw();
