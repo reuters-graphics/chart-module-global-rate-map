@@ -34,7 +34,7 @@ class ChartComponent extends React.Component {
           name: ['US', 'IN', 'AU'],
           value: ['CA','AU'],
         },
-        interaction: false,
+        interaction: true,
         // custom_center: [173.640289, 3.403072],
         // map_custom_projections: {
         //   center: [0, 5],
@@ -48,24 +48,24 @@ class ChartComponent extends React.Component {
       .draw();
 
     // Use it again.
-    setTimeout(() => {
-      this.chart
-        .data(newData)
-        .props({
-          // geo: oceania,
-          map_custom_projections: {
-            center: [0, 5],
-            rotate: [-180, 0],
-            clip_box: [[111, 2], [225, -50]],
-          },
-          interaction: true,
-          annotations: {
-            name: ['US'],
-            value: ['AU'],
-          },
-        })
-        .draw();
-    }, 2000);
+    // setTimeout(() => {
+    //   this.chart
+    //     .data(newData)
+    //     .props({
+    //       // geo: oceania,
+    //       map_custom_projections: {
+    //         center: [0, 5],
+    //         rotate: [-180, 0],
+    //         clip_box: [[111, 2], [225, -50]],
+    //       },
+    //       interaction: true,
+    //       annotations: {
+    //         name: ['US'],
+    //         value: ['AU'],
+    //       },
+    //     })
+    //     .draw();
+    // }, 2000);
     // setTimeout(() => {
     //   this.chart
     //     .data([30, 50, 30])

@@ -54,6 +54,8 @@ class GlobalRateMap extends ChartComponent {
       value: [],
     },
     interaction: true,
+    at_peak_text: 'At peak',
+    of_peak_text: 'of peak'
   };
 
   draw() {
@@ -273,12 +275,12 @@ class GlobalRateMap extends ChartComponent {
       .merge(countryVoronoiCentroids)
       .attr('d', path)
       .on('mouseover', d => {
-        if (props.interaction){
+        if (props.interaction) {
           tipOn(d);
         }
       })
       .on('mouseout', d => {
-        if (props.interaction){
+        if (props.interaction) {
           tipOff(d);
         }
       });
@@ -344,9 +346,8 @@ class GlobalRateMap extends ChartComponent {
         const p = projection(d.countryGeo.geometry.coordinates);
         return `translate(${p[0]},${p[1] + props.hover_gap})`;
       })
-      .attr('dy', '1em')
       .html((d) => {
-        return `<tspan>${(Math.round(d.countryGeo.value * 100)).toLocaleString(props.locale)}%</tspan> <tspan class="smaller">of peak</tspan>`;
+        return getPeakText(d.countryGeo.value);
       });
 
     annotationsNumbers.exit()
@@ -381,8 +382,7 @@ class GlobalRateMap extends ChartComponent {
         .style('text-anchor', 'middle')
         .html(d => `
           <tspan x="0" y="0">${properties.translations[props.locale]}</tspan>
-          <tspan x="0" dy="1em">${(Math.round(value * 100)).toLocaleString(props.locale)}%</tspan> <tspan class="smaller">of peak</tspan>
-        `);
+          ${getPeakText(value)}`);
 
       g.selectAll(`.country.c-${properties.slug}`)
         .classed('active', true);
@@ -404,6 +404,17 @@ class GlobalRateMap extends ChartComponent {
 
       country.classed('active', false)
         .style('stroke', props.map_stroke_color);
+    }
+
+    function getPeakText(value) {
+      value = Math.round(value * 100);
+      if (value < 100 && value >= 1) {
+        return `<tspan dy="1rem" x="0">${value.toLocaleString(props.locale)}%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
+      } else if (value < 1) {
+        return `<tspan dy="1rem" x="0"><1%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
+      } else if (value===100) {
+        return `<tspan dy="1rem" x="0">${props.at_peak_text}</tspan>`
+      }
     }
 
     return this;

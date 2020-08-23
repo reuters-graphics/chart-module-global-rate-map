@@ -717,7 +717,9 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         name: [],
         value: []
       },
-      interaction: true
+      interaction: true,
+      at_peak_text: 'At peak',
+      of_peak_text: 'of peak'
     });
 
     return _this;
@@ -947,8 +949,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       annotationsNumbers.enter().append('text').attr('class', 'annotation').merge(annotationsNumbers).attr('transform', function (d) {
         var p = projection(d.countryGeo.geometry.coordinates);
         return "translate(".concat(p[0], ",").concat(p[1] + props.hover_gap, ")");
-      }).attr('dy', '1em').html(function (d) {
-        return "<tspan>".concat(Math.round(d.countryGeo.value * 100).toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">of peak</tspan>");
+      }).html(function (d) {
+        return getPeakText(d.countryGeo.value);
       });
       annotationsNumbers.exit().remove();
 
@@ -971,7 +973,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
           var o = projection(properties.centroid);
           return "translate(".concat(o[0], ",").concat(o[1] + props.hover_gap, ")");
         }).style('text-anchor', 'middle').html(function (d) {
-          return "\n          <tspan x=\"0\" y=\"0\">".concat(properties.translations[props.locale], "</tspan>\n          <tspan x=\"0\" dy=\"1em\">").concat(Math.round(value * 100).toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">of peak</tspan>\n        ");
+          return "\n          <tspan x=\"0\" y=\"0\">".concat(properties.translations[props.locale], "</tspan>\n          ").concat(getPeakText(value));
         });
         g.selectAll(".country.c-".concat(properties.slug)).classed('active', true);
       }
@@ -983,6 +985,18 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         g.selectAll('.name-annotations,.number-annotations').style('opacity', 1);
         tooltip.html('');
         country.classed('active', false).style('stroke', props.map_stroke_color);
+      }
+
+      function getPeakText(value) {
+        value = Math.round(value * 100);
+
+        if (value < 100 && value >= 1) {
+          return "<tspan dy=\"1rem\" x=\"0\">".concat(value.toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">").concat(props.of_peak_text, "</tspan>");
+        } else if (value < 1) {
+          return "<tspan dy=\"1rem\" x=\"0\"><1%</tspan> <tspan class=\"smaller\">".concat(props.of_peak_text, "</tspan>");
+        } else if (value === 100) {
+          return "<tspan dy=\"1rem\" x=\"0\">".concat(props.at_peak_text, "</tspan>");
+        }
       }
 
       return this;
