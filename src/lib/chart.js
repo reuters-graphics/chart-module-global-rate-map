@@ -55,7 +55,7 @@ class GlobalRateMap extends ChartComponent {
     },
     interaction: true,
     at_peak_text: 'At peak',
-    of_peak_text: 'of peak'
+    of_peak_text: 'of peak',
   };
 
   draw() {
@@ -217,7 +217,7 @@ class GlobalRateMap extends ChartComponent {
       .attr('d', path);
 
     if (disputed) {
-      svg.appendSelect('path.disputed')
+      g.appendSelect('path.disputed')
         .attr('class', 'disputed level-0')
         .style('pointer-events', 'none')
         .style('stroke', props.map_stroke_color)

@@ -862,7 +862,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       }).merge(countryGroups).style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).attr('d', path);
 
       if (disputed) {
-        svg.appendSelect('path.disputed').attr('class', 'disputed level-0').style('pointer-events', 'none').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
+        g.appendSelect('path.disputed').attr('class', 'disputed level-0').style('pointer-events', 'none').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
       }
 
       var sortedCentroids = countryCentroids.sort(function (a, b) {
