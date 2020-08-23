@@ -891,7 +891,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var value = scaleY(d.value);
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       }).style('fill', 'none').style('stroke', function (d) {
-        return d.value ? props.spike_color_scale(d.value) : null;
+        return d.value ? props.spike_color_scale(d.value) : '#ccc';
       }).style('stroke-width', function (d) {
         return d.value ? props.spike_stroke_width_scale(d.value) : 0.5;
       });

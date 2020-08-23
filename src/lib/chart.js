@@ -256,7 +256,7 @@ class GlobalRateMap extends ChartComponent {
       })
       .style('fill', 'none')
       .style('stroke', function(d) {
-        return d.value ? props.spike_color_scale(d.value) : null;
+        return d.value ? props.spike_color_scale(d.value) : '#ccc';
       })
       .style('stroke-width', function(d) {
         return d.value ? props.spike_stroke_width_scale(d.value) : 0.5;
