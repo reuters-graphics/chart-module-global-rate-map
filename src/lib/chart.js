@@ -155,7 +155,7 @@ class GlobalRateMap extends ChartComponent {
 
     keySvg.appendSelect('path.white-spike.low')
       .style('stroke', '#ccc')
-      .style('fill','#ccc')
+      .style('fill', '#ccc')
       .attr('d', (d, i) => {
         const obj = [keyGap * 2.3+props.spike_size*1.4, props.spike_height];
         const value = scaleY(0);
@@ -164,7 +164,7 @@ class GlobalRateMap extends ChartComponent {
 
     keySvg.appendSelect('line')
       .style('stroke', 'white')
-      .style('stroke-width',.7)
+      .style('stroke-width', .7)
       .attr('x1', 10)
       .attr('x2', 10)
       .attr('y1', 7)
@@ -173,15 +173,15 @@ class GlobalRateMap extends ChartComponent {
       .attr('marker-start', 'url(#arrow-down)');
 
     const bottomKeyText = keySvgContainer.appendSelect('div.bottom-text')
-      .style('padding-left', `${keyGap*.4}px`);
+      .style('padding-left', `${keyGap * 0.4}px`);
     bottomKeyText.appendSelect('p.red-text.key-text.text-inline')
-      .style('width', `${keyGap*.8}px`)
+      .style('width', `${keyGap * 0.8}px`)
       .html(props.key.text.red_peak);
     bottomKeyText.appendSelect('p.orange-text.key-text.text-inline')
-      .style('width', `${keyGap*.8}px`)
+      .style('width', `${keyGap * 0.8}px`)
       .html(props.key.text.orange_peak);
     bottomKeyText.appendSelect('p.white-text.key-text.text-inline')
-      .style('width', `${keyGap*.8}px`)
+      .style('width', `${keyGap * 0.8}px`)
       .html(props.key.text.white_peak);
 
     // SVG begins here
@@ -459,7 +459,7 @@ class GlobalRateMap extends ChartComponent {
         .style('fill', 'none');
 
       g.selectAll('.name-annotations,.number-annotations')
-        .style('opacity',1);
+        .style('opacity', 1);
 
       tooltip.html('');
 
@@ -473,7 +473,7 @@ class GlobalRateMap extends ChartComponent {
         return `<tspan dy="1rem" x="0">${value.toLocaleString(props.locale)}%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
       } else if (value < 1) {
         return `<tspan dy="1rem" x="0"><1%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
-      } else if (value===100) {
+      } else if (value === 100) {
         return `<tspan dy="1rem" x="0">${props.at_peak_text}</tspan>`
       }
     }
@@ -516,7 +516,7 @@ function makeRangeBox(opts) {
       [lon1 - 2 * dlon4, lat0],
       [lon1 - 3 * dlon4, lat0],
       [lon0, lat0],
-    ]]
+    ]],
   };
 }
 export default GlobalRateMap;
