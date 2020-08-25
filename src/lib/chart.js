@@ -214,6 +214,7 @@ class GlobalRateMap extends ChartComponent {
     const filteredCountryKeys = filteredData.map(d => d.key);
     const countryCentroids = countries.features
       .filter(c => filteredCountryKeys.includes(c.properties.isoAlpha2))
+      .filter(c => c.properties.centroid.length==2)
       .map(({ properties }) => ({
         type: 'Feature',
         properties,

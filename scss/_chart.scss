@@ -33,11 +33,6 @@ $faint-white: rgba(255, 255, 255, 0.3);
 
   }
 
-  path.active.centroid {
-      stroke-width: 3!important;
-      /*stroke: #2F353F!important*/
-    }
-
   path.country.active {
     fill: $faint-white;
     stroke-width: 1px!important;
