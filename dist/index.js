@@ -821,7 +821,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       var countryCentroids = countries.features.filter(function (c) {
         return filteredCountryKeys.includes(c.properties.isoAlpha2);
       }).filter(function (c) {
-        return c.properties.centroid.length == 2;
+        return c.properties.centroid.length == 2 && c.properties.centroid[0] && c.properties.centroid[1];
       }).map(function (_ref) {
         var properties = _ref.properties;
         return {
