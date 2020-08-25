@@ -786,10 +786,10 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       });
       keySvg.appendSelect('line').style('stroke', 'white').style('stroke-width', .7).attr('x1', 10).attr('x2', 10).attr('y1', 7).attr('y1', props.spike_height).attr('marker-end', 'url(#arrow-up)').attr('marker-start', 'url(#arrow-down)');
-      var bottomKeyText = keySvgContainer.appendSelect('div.bottom-text').style('padding-left', "".concat(keyGap * .4, "px"));
-      bottomKeyText.appendSelect('p.red-text.key-text.text-inline').style('width', "".concat(keyGap * .8, "px")).html(props.key.text.red_peak);
-      bottomKeyText.appendSelect('p.orange-text.key-text.text-inline').style('width', "".concat(keyGap * .8, "px")).html(props.key.text.orange_peak);
-      bottomKeyText.appendSelect('p.white-text.key-text.text-inline').style('width', "".concat(keyGap * .8, "px")).html(props.key.text.white_peak); // SVG begins here
+      var bottomKeyText = keySvgContainer.appendSelect('div.bottom-text').style('padding-left', "".concat(keyGap * 0.4, "px"));
+      bottomKeyText.appendSelect('p.red-text.key-text.text-inline').style('width', "".concat(keyGap * 0.8, "px")).html(props.key.text.red_peak);
+      bottomKeyText.appendSelect('p.orange-text.key-text.text-inline').style('width', "".concat(keyGap * 0.8, "px")).html(props.key.text.orange_peak);
+      bottomKeyText.appendSelect('p.white-text.key-text.text-inline').style('width', "".concat(keyGap * 0.8, "px")).html(props.key.text.white_peak); // SVG begins here
 
       var svg = this.selection().appendSelect('svg.chart') // see docs in ./utils/d3.js
       .attr('width', width).attr('height', height);
@@ -820,6 +820,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       });
       var countryCentroids = countries.features.filter(function (c) {
         return filteredCountryKeys.includes(c.properties.isoAlpha2);
+      }).filter(function (c) {
+        return c.properties.centroid.length == 2;
       }).map(function (_ref) {
         var properties = _ref.properties;
         return {
