@@ -677,11 +677,13 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       map_fill: 'rgba(153,153,153,0.25)',
       map_stroke_color_active: 'rgba(255, 255, 255, 0.75)',
       spike_color: '#eec331',
-      heightRatio: 0.5,
+      heightRatio: function heightRatio(width, breakpoint) {
+        return width < breakpoint ? 0.8 : 0.5;
+      },
       geo: false,
       locale: 'en',
       map_custom_projections: {
-        clip_box: null,
+        clip_box: [[-130, 70], [194, -39]],
         projection: 'geoNaturalEarth1',
         center: null,
         scale: null,
@@ -718,6 +720,16 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         name: [],
         value: []
       },
+      mobile: true,
+      refBox: {
+        height: 90,
+        width: 180,
+        breakpoint: 900,
+        useWidth: function useWidth(width, factor) {
+          return width * factor;
+        },
+        factor: 2.2
+      },
       interaction: true,
       at_peak_text: 'At peak',
       of_peak_text: 'of peak'
@@ -736,7 +748,18 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       var _node$getBoundingClie = node.getBoundingClientRect(),
           width = _node$getBoundingClie.width;
 
-      var height = width * props.heightRatio;
+      var ratio = props.heightRatio(width, props.refBox.breakpoint);
+      var useWidth, height;
+
+      if (width < props.refBox.breakpoint) {
+        useWidth = props.refBox.useWidth(width, props.refBox.factor);
+        this.selection().classed('mobile', true);
+        height = useWidth * 0.5;
+      } else {
+        useWidth = width;
+        this.selection().classed('mobile', false);
+        height = width * ratio;
+      }
 
       var _props$getDataRange = props.getDataRange(width),
           filterMin = _props$getDataRange.min,
@@ -791,8 +814,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       bottomKeyText.appendSelect('p.orange-text.key-text.text-inline').style('width', "".concat(keyGap * 0.8, "px")).html(props.key.text.orange_peak);
       bottomKeyText.appendSelect('p.white-text.key-text.text-inline').style('width', "".concat(keyGap * 0.8, "px")).html(props.key.text.white_peak); // SVG begins here
 
-      var svg = this.selection().appendSelect('svg.chart') // see docs in ./utils/d3.js
-      .attr('width', width).attr('height', height);
+      var svg = this.selection().appendSelect('div.chart-container-div').attr('id', 'map-container').style('overflow-x', 'scroll').appendSelect('svg.chart') // see docs in ./utils/d3.js
+      .attr('width', useWidth).attr('height', height);
       var g = svg.appendSelect('g');
 
       if (!d3[props.map_custom_projections.projection]) {
@@ -861,10 +884,10 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
 
       if (props.map_custom_projections.clip_box && props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2) {
         console.log('clipping! :)');
-        projection.fitSize([width, height], makeRangeBox(props.map_custom_projections.clip_box));
+        projection.fitSize([useWidth, height], makeRangeBox(props.map_custom_projections.clip_box));
       } else {
         console.log('cant clip :(');
-        projection.fitSize([width, height], countries);
+        projection.fitSize([useWidth, height], countries);
       }
 
       if (props.map_custom_projections.scale) {
@@ -881,6 +904,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       countryGroups.enter().append('path').attr('class', function (d) {
         return "country c-".concat(d.properties.slug, " level-0");
       }).merge(countryGroups).style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).attr('d', path);
+      console.log(g.select('.countries').node().getBoundingClientRect());
 
       if (disputed) {
         g.appendSelect('path.disputed').attr('class', 'disputed level-0').style('pointer-events', 'none').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
@@ -975,6 +999,38 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       });
       annotationsNumbers.exit().remove();
 
+      if (props.mobile && width < props.refBox.breakpoint) {
+        // Ref box at the bottom for mobile starts here
+        var land = feature(props.geo, props.geo.objects.land);
+        var refBoxContainer = this.selection().appendSelect('div.ref-box').classed('hide', false).style('text-align', 'center').style('width', "".concat(props.refBox.width, "px")).style('height', "".concat(props.refBox.height, "px"));
+        var refBox = refBoxContainer.appendSelect('svg').style('border', "".concat(props.map_fill, " solid 1px")).attr('width', props.refBox.width).attr('height', props.refBox.height);
+        var projectionRef = d3.geoNaturalEarth1().fitSize([props.refBox.width, props.refBox.height], makeRangeBox(props.map_custom_projections.clip_box));
+        var pathRef = d3.geoPath().projection(projectionRef);
+        refBox.appendSelect('path').attr('d', pathRef(land)).attr('fill', props.map_fill);
+        var activeWidth = width / useWidth * props.refBox.width;
+        var activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region').style('width', "".concat(activeWidth, "px")).style('height', "".concat(props.refBox.height, "px")).call(d3.drag().on('start.interrupt', function () {
+          activeRegion.interrupt();
+          console.log('stop');
+        }).on('start drag', function () {
+          var calcX = d3.event.x - activeWidth / 2;
+
+          if (d3.event.x <= activeWidth / 2) {
+            calcX = 0;
+          } else if (d3.event.x >= props.refBox.width - activeWidth / 2) {
+            calcX = props.refBox.width - activeWidth;
+          }
+
+          activeRegion.style('left', calcX + 'px');
+          document.getElementById('map-container').scrollLeft = calcX / props.refBox.width * useWidth;
+        }));
+        document.getElementById('map-container').addEventListener('scroll', function (d) {
+          var pos = d.target.scrollLeft;
+          activeRegion.style('left', pos / useWidth * props.refBox.width + 'px');
+        }); // Refbox ends here
+      } else {
+        this.selection().select('.ref-box').classed('hide', true);
+      }
+
       function tipOn(voronoiPath) {
         var properties = voronoiPath.properties.site.properties;
         if (properties.reset) return;
@@ -1012,11 +1068,11 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         value = Math.round(value * 100);
 
         if (value < 100 && value >= 1) {
-          return "<tspan dy=\"1rem\" x=\"0\">".concat(value.toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">").concat(props.of_peak_text, "</tspan>");
+          return "<tspan dy=\"1em\" x=\"0\">".concat(value.toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">").concat(props.of_peak_text, "</tspan>");
         } else if (value < 1) {
-          return "<tspan dy=\"1rem\" x=\"0\"><1%</tspan> <tspan class=\"smaller\">".concat(props.of_peak_text, "</tspan>");
+          return "<tspan dy=\"1em\" x=\"0\"><1%</tspan> <tspan class=\"smaller\">".concat(props.of_peak_text, "</tspan>");
         } else if (value === 100) {
-          return "<tspan dy=\"1rem\" x=\"0\">".concat(props.at_peak_text, "</tspan>");
+          return "<tspan dy=\"1em\" x=\"0\">".concat(props.at_peak_text, "</tspan>");
         }
       }
 

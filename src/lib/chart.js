@@ -16,11 +16,11 @@ class GlobalRateMap extends ChartComponent {
     map_fill: 'rgba(153,153,153,0.25)',
     map_stroke_color_active: 'rgba(255, 255, 255, 0.75)',
     spike_color: '#eec331',
-    heightRatio: 0.5,
+    heightRatio: (width, breakpoint) => (width<breakpoint?0.8:0.5),
     geo: false,
     locale: 'en',
     map_custom_projections: {
-      clip_box: null,
+      clip_box: [[-130, 70], [194, -39]],
       projection: 'geoNaturalEarth1',
       center: null,
       scale: null,
@@ -54,6 +54,14 @@ class GlobalRateMap extends ChartComponent {
       name: [],
       value: [],
     },
+    mobile: true,
+    refBox: {
+      height: 90,
+      width: 180,
+      breakpoint: 900,
+      useWidth: (width,factor) => (width * factor),
+      factor: 2.2,
+    },
     interaction: true,
     at_peak_text: 'At peak',
     of_peak_text: 'of peak',
@@ -63,8 +71,18 @@ class GlobalRateMap extends ChartComponent {
     const data = this.data();
     const props = this.props();
     const node = this.selection().node();
-    const { width } = node.getBoundingClientRect();
-    const height = width * props.heightRatio;
+    let { width } = node.getBoundingClientRect();
+    const ratio = props.heightRatio(width, props.refBox.breakpoint)
+    let useWidth, height;
+    if (width < props.refBox.breakpoint) {
+      useWidth = props.refBox.useWidth(width,props.refBox.factor);
+      this.selection().classed('mobile', true);
+      height = useWidth * 0.5;
+    } else {
+      useWidth = width;
+      this.selection().classed('mobile', false);
+      height = width * ratio;
+    }
 
     const { min: filterMin, max: filterMax } = props.getDataRange(width);
     const filteredData = data.filter(d => d.value >= filterMin && d.value <= filterMax);
@@ -174,6 +192,7 @@ class GlobalRateMap extends ChartComponent {
 
     const bottomKeyText = keySvgContainer.appendSelect('div.bottom-text')
       .style('padding-left', `${keyGap * 0.4}px`);
+
     bottomKeyText.appendSelect('p.red-text.key-text.text-inline')
       .style('width', `${keyGap * 0.8}px`)
       .html(props.key.text.red_peak);
@@ -186,8 +205,11 @@ class GlobalRateMap extends ChartComponent {
 
     // SVG begins here
     const svg = this.selection()
+      .appendSelect('div.chart-container-div')
+      .attr('id', 'map-container')
+      .style('overflow-x', 'scroll')
       .appendSelect('svg.chart') // see docs in ./utils/d3.js
-      .attr('width', width)
+      .attr('width', useWidth)
       .attr('height', height);
 
     const g = svg.appendSelect('g');
@@ -249,10 +271,10 @@ class GlobalRateMap extends ChartComponent {
 
     if (props.map_custom_projections.clip_box && (props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2)) {
       console.log('clipping! :)');
-      projection.fitSize([width, height], makeRangeBox(props.map_custom_projections.clip_box));
+      projection.fitSize([useWidth, height], makeRangeBox(props.map_custom_projections.clip_box));
     } else {
       console.log('cant clip :(');
-      projection.fitSize([width, height], countries);
+      projection.fitSize([useWidth, height], countries);
     }
 
     if (props.map_custom_projections.scale) {
@@ -260,7 +282,6 @@ class GlobalRateMap extends ChartComponent {
     }
 
     const path = d3.geoPath().projection(projection);
-
     svg.selectAll('.country,.disputed,.centroid').remove();
 
     const countryGroups = g.appendSelect('g.countries')
@@ -278,6 +299,7 @@ class GlobalRateMap extends ChartComponent {
       .style('stroke-width', props.map_stroke_width)
       .attr('d', path);
 
+    console.log(g.select('.countries').node().getBoundingClientRect());
     if (disputed) {
       g.appendSelect('path.disputed')
         .attr('class', 'disputed level-0')
@@ -415,6 +437,63 @@ class GlobalRateMap extends ChartComponent {
     annotationsNumbers.exit()
       .remove();
 
+    if (props.mobile && width < props.refBox.breakpoint) {
+      // Ref box at the bottom for mobile starts here
+
+      const refBoxContainer = this.selection()
+        .appendSelect('div.ref-box')
+        .classed('hide', false)
+        .style('text-align', 'center')
+        .style('width', `${props.refBox.width}px`)
+        .style('height', `${props.refBox.height}px`)
+
+      const refBox = refBoxContainer.appendSelect('svg')
+        .style('border', `${props.map_fill} solid 1px`)
+        .attr('width', props.refBox.width)
+        .attr('height', props.refBox.height);
+
+      const projectionRef = d3.geoNaturalEarth1();
+      if (props.map_custom_projections.clip_box && (props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2)) {
+        projectionRef.fitSize([props.refBox.width, props.refBox.height], makeRangeBox(props.map_custom_projections.clip_box));
+      } else {
+        projectionRef.fitSize([props.refBox.width, props.refBox.height], countries);
+      }
+      const woAntarctica = {
+        type: countries.type,
+        features: countries.features.filter(e=>e.properties.slug!='antarctica'),
+      };
+      const pathRef = d3.geoPath().projection(projectionRef);
+      refBox.appendSelect('path').attr('d', pathRef(woAntarctica)).attr('fill', props.map_fill);
+      const activeWidth = width / useWidth * props.refBox.width;
+      const activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region')
+        .style('width', `${activeWidth}px`)
+        .style('height', `${props.refBox.height}px`)
+        .call(d3.drag()
+          .on('start.interrupt', function() {
+            activeRegion.interrupt();
+            console.log('stop');
+          })
+          .on('start drag', function() {
+            let calcX = d3.event.x - (activeWidth / 2)
+            if (d3.event.x <= activeWidth / 2) {
+              calcX = 0;
+            } else if (d3.event.x >= (props.refBox.width - activeWidth/2)) {
+              calcX = props.refBox.width - activeWidth;
+            }
+            activeRegion.style('left', calcX + 'px');
+            document.getElementById('map-container').scrollLeft = calcX/props.refBox.width*useWidth
+          }));
+
+      document.getElementById('map-container')
+        .addEventListener('scroll', function(d) {
+          const pos = (d.target.scrollLeft)
+          activeRegion.style('left', pos/useWidth*props.refBox.width + 'px');
+        });
+      // Refbox ends here
+    } else {
+      this.selection().select('.ref-box').classed('hide', true);
+    }
+
     function tipOn(voronoiPath) {
       const { properties } = voronoiPath.properties.site;
       if (properties.reset) return;
@@ -426,7 +505,7 @@ class GlobalRateMap extends ChartComponent {
         .style('opacity', props.spike_inactive_opacity);
 
       g.selectAll('.name-annotations,.number-annotations')
-        .style('opacity',0)
+        .style('opacity', 0)
 
       g.selectAll(`path.centroid.${properties.slug}`)
         .style('opacity', 1)
@@ -471,11 +550,11 @@ class GlobalRateMap extends ChartComponent {
     function getPeakText(value) {
       value = Math.round(value * 100);
       if (value < 100 && value >= 1) {
-        return `<tspan dy="1rem" x="0">${value.toLocaleString(props.locale)}%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
+        return `<tspan dy="1em" x="0">${value.toLocaleString(props.locale)}%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
       } else if (value < 1) {
-        return `<tspan dy="1rem" x="0"><1%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
+        return `<tspan dy="1em" x="0"><1%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
       } else if (value === 100) {
-        return `<tspan dy="1rem" x="0">${props.at_peak_text}</tspan>`
+        return `<tspan dy="1em" x="0">${props.at_peak_text}</tspan>`
       }
     }
 

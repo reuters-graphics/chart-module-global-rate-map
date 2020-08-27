@@ -103,6 +103,20 @@ myChart
 
       // If you want interaction on hover
       interaction: true,
+      // If you want the inset on mobile
+      mobile: true,
+      refBox: {
+        // height of the inset box
+        height: 90,
+        // width of the inset box
+        width: 180,
+        // width breakpoint at which to show inset
+        breakpoint: 900,
+        // what is the width of the svg going to be
+        useWidth: (width,factor) => (width * factor),
+        // the factor that is to be used in the above function
+        factor: 2.2,
+      },
     },
   })
   .draw();

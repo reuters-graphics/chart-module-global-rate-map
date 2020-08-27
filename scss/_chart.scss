@@ -1,11 +1,44 @@
 
 $thin-white: rgba(255, 255, 255, 0.5);
 $faint-white: rgba(255, 255, 255, 0.3);
-
+$pale-yellow: #fce587;
 #{$GlobalRateMap-container} {
+  
+  &.mobile{
+    overflow-x: hidden;
+    .chart-container-div{
+      -ms-overflow-style: none;  /* IE and Edge */
+    }
+    .chart-container-div::-webkit-scrollbar {
+      display: none;
+    }
+    .ref-box{
+      position: relative;
+      margin: 1rem auto;
+      .active-region{
+        border: solid 2px $pale-yellow;
+        cursor: move; /* fallback if grab cursor is unsupported */
+        cursor: grab;
+        cursor: -moz-grab;
+        cursor: -webkit-grab;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .active-region:active {
+        cursor: grabbing;
+        cursor: -moz-grabbing;
+        cursor: -webkit-grabbing;
+      }
+    }
+   
+  }
+  .ref-box.hide{
+      display: none;
+  }
   .key{
     text-align: center;
-    margin: 0 auto 1rem auto;
+    margin: 1rem auto 1rem auto;
     position: relative;
     .text-inline{
       display: inline-block;

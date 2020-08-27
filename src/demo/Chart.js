@@ -5,6 +5,8 @@ import debounce from 'lodash/debounce';
 import defaultData from './defaultData.json';
 import defaultGeo from './topo.json';
 import oceania from './oceania.json';
+import europe from './europe.json';
+
 
 const newData = [];
 for (var key of Object.keys(defaultData.distributionRanks.cases)) {
@@ -32,7 +34,7 @@ class ChartComponent extends React.Component {
         geo: defaultGeo,
         annotations: {
           name: ['US', 'IN', 'AU'],
-          value: ['CA','AU'],
+          value: ['CA', 'AU'],
         },
         interaction: true,
         // custom_center: [173.640289, 3.403072],
