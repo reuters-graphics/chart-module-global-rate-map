@@ -445,12 +445,14 @@ class GlobalRateMap extends ChartComponent {
         .classed('hide', false)
         .style('text-align', 'center')
         .style('width', `${props.refBox.width}px`)
-        .style('height', `${props.refBox.height}px`)
-
-      const refBox = refBoxContainer.appendSelect('svg')
-        .style('border', `${props.map_fill} solid 1px`)
+        .style('height', `${props.refBox.height}px`);
+      const refBox = refBoxContainer.appendSelect('canvas')
         .attr('width', props.refBox.width)
         .attr('height', props.refBox.height);
+
+      const context = refBox.node().getContext('2d');
+
+      console.log(context)
 
       const projectionRef = d3.geoNaturalEarth1();
       if (props.map_custom_projections.clip_box && (props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2)) {
@@ -460,10 +462,16 @@ class GlobalRateMap extends ChartComponent {
       }
       const woAntarctica = {
         type: countries.type,
-        features: countries.features.filter(e=>e.properties.slug!='antarctica'),
+        features: countries.features.filter( e => e.properties.slug !== 'antarctica'),
       };
-      const pathRef = d3.geoPath().projection(projectionRef);
-      refBox.appendSelect('path').attr('d', pathRef(woAntarctica)).attr('fill', props.map_fill);
+
+      const pathRef = d3.geoPath(projectionRef, context);
+      context.clearRect(0, 0, props.refBox.width, props.refBox.height);
+      context.beginPath();
+      pathRef(woAntarctica);
+      context.fillStyle = props.map_fill;
+      context.fill();
+
       const activeWidth = width / useWidth * props.refBox.width;
       const activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region')
         .style('width', `${activeWidth}px`)
