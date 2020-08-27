@@ -7,7 +7,6 @@ import defaultGeo from './topo.json';
 import oceania from './oceania.json';
 import europe from './europe.json';
 
-
 const newData = [];
 for (var key of Object.keys(defaultData.distributionRanks.cases)) {
   newData.push({
@@ -31,12 +30,11 @@ class ChartComponent extends React.Component {
       .selection(this.chartContainer.current)
       .data(newData)
       .props({
-        geo: defaultGeo,
-        annotations: {
-          name: ['US', 'IN', 'AU'],
-          value: ['CA', 'AU'],
-        },
+        geo: europe,
         interaction: true,
+        map_custom_projections: {
+          clip_box: [[-30, 71], [66, 34]]
+        } 
         // custom_center: [173.640289, 3.403072],
         // map_custom_projections: {
         //   center: [0, 5],
