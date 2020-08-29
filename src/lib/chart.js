@@ -445,7 +445,7 @@ class GlobalRateMap extends ChartComponent {
         .style('text-align', 'center')
         .style('width', `${props.refBox.width}px`)
         .style('height', `${props.refBox.height}px`);
-      
+
       const refBox = refBoxContainer.appendSelect('canvas')
         .attr('width', props.refBox.width)
         .attr('height', props.refBox.height);
