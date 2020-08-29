@@ -751,7 +751,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       var ratio = props.heightRatio(width, props.refBox.breakpoint);
       var useWidth, height;
 
-      if (width < props.refBox.breakpoint) {
+      if (width < props.refBox.breakpoint && props.mobile) {
         useWidth = props.refBox.useWidth(width, props.refBox.factor);
         this.selection().classed('mobile', true);
         height = useWidth * 0.5;
@@ -904,7 +904,6 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       countryGroups.enter().append('path').attr('class', function (d) {
         return "country c-".concat(d.properties.slug, " level-0");
       }).merge(countryGroups).style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).attr('d', path);
-      console.log(g.select('.countries').node().getBoundingClientRect());
 
       if (disputed) {
         g.appendSelect('path.disputed').attr('class', 'disputed level-0').style('pointer-events', 'none').style('stroke', props.map_stroke_color).style('stroke-width', props.map_stroke_width).style('fill', 'none').style('stroke-dasharray', props.disputed_dasharray).attr('d', path(disputed));
@@ -1004,13 +1003,24 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var refBoxContainer = this.selection().appendSelect('div.ref-box').classed('hide', false).style('text-align', 'center').style('width', "".concat(props.refBox.width, "px")).style('height', "".concat(props.refBox.height, "px"));
         var refBox = refBoxContainer.appendSelect('canvas').attr('width', props.refBox.width).attr('height', props.refBox.height);
         var context = refBox.node().getContext('2d');
-        console.log(context);
         var projectionRef = d3.geoNaturalEarth1();
 
         if (props.map_custom_projections.clip_box && props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2) {
           projectionRef.fitSize([props.refBox.width, props.refBox.height], makeRangeBox(props.map_custom_projections.clip_box));
         } else {
           projectionRef.fitSize([props.refBox.width, props.refBox.height], countries);
+        }
+
+        if (props.map_custom_projections.scale) {
+          projectionRef.scale(props.map_custom_projections.scale);
+        }
+
+        if (props.map_custom_projections.center && props.map_custom_projections.center.length === 2) {
+          projectionRef.center(props.map_custom_projections.center);
+        }
+
+        if (props.map_custom_projections.rotate && props.map_custom_projections.rotate.length === 2) {
+          projectionRef.rotate(props.map_custom_projections.rotate);
         }
 
         var woAntarctica = {
@@ -1028,7 +1038,6 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var activeWidth = width / useWidth * props.refBox.width;
         var activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region').style('width', "".concat(activeWidth, "px")).style('height', "".concat(props.refBox.height, "px")).call(d3.drag().on('start.interrupt', function () {
           activeRegion.interrupt();
-          console.log('stop');
         }).on('start drag', function () {
           var calcX = d3.event.x - activeWidth / 2;
 

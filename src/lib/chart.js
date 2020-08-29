@@ -16,7 +16,7 @@ class GlobalRateMap extends ChartComponent {
     map_fill: 'rgba(153,153,153,0.25)',
     map_stroke_color_active: 'rgba(255, 255, 255, 0.75)',
     spike_color: '#eec331',
-    heightRatio: (width, breakpoint) => (width<breakpoint?0.8:0.5),
+    heightRatio: (width, breakpoint) => (width < breakpoint ? 0.8 : 0.5),
     geo: false,
     locale: 'en',
     map_custom_projections: {
@@ -59,7 +59,7 @@ class GlobalRateMap extends ChartComponent {
       height: 90,
       width: 180,
       breakpoint: 900,
-      useWidth: (width,factor) => (width * factor),
+      useWidth: (width, factor) => (width * factor),
       factor: 2.2,
     },
     interaction: true,
@@ -74,7 +74,7 @@ class GlobalRateMap extends ChartComponent {
     let { width } = node.getBoundingClientRect();
     const ratio = props.heightRatio(width, props.refBox.breakpoint)
     let useWidth, height;
-    if (width < props.refBox.breakpoint) {
+    if (width < props.refBox.breakpoint && props.mobile) {
       useWidth = props.refBox.useWidth(width,props.refBox.factor);
       this.selection().classed('mobile', true);
       height = useWidth * 0.5;
@@ -299,7 +299,6 @@ class GlobalRateMap extends ChartComponent {
       .style('stroke-width', props.map_stroke_width)
       .attr('d', path);
 
-    console.log(g.select('.countries').node().getBoundingClientRect());
     if (disputed) {
       g.appendSelect('path.disputed')
         .attr('class', 'disputed level-0')
@@ -452,17 +451,26 @@ class GlobalRateMap extends ChartComponent {
 
       const context = refBox.node().getContext('2d');
 
-      console.log(context)
-
       const projectionRef = d3.geoNaturalEarth1();
+      
       if (props.map_custom_projections.clip_box && (props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2)) {
         projectionRef.fitSize([props.refBox.width, props.refBox.height], makeRangeBox(props.map_custom_projections.clip_box));
       } else {
         projectionRef.fitSize([props.refBox.width, props.refBox.height], countries);
       }
+      if (props.map_custom_projections.scale) {
+        projectionRef.scale(props.map_custom_projections.scale);
+      }
+      if (props.map_custom_projections.center && props.map_custom_projections.center.length === 2) {
+        projectionRef.center(props.map_custom_projections.center);
+      }
+      if (props.map_custom_projections.rotate && props.map_custom_projections.rotate.length === 2) {
+        projectionRef.rotate(props.map_custom_projections.rotate);
+      }
+      
       const woAntarctica = {
         type: countries.type,
-        features: countries.features.filter( e => e.properties.slug !== 'antarctica'),
+        features: countries.features.filter(e => e.properties.slug !== 'antarctica'),
       };
 
       const pathRef = d3.geoPath(projectionRef, context);
@@ -479,7 +487,6 @@ class GlobalRateMap extends ChartComponent {
         .call(d3.drag()
           .on('start.interrupt', function() {
             activeRegion.interrupt();
-            console.log('stop');
           })
           .on('start drag', function() {
             let calcX = d3.event.x - (activeWidth / 2)
