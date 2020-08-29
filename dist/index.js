@@ -808,7 +808,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var value = scaleY(0);
         return 'M' + (obj[0] - props.spike_size) + ' ' + obj[1] + ' L' + obj[0] + ' ' + (obj[1] - value) + ' L' + (obj[0] + props.spike_size) + ' ' + obj[1] + ' ';
       });
-      keySvg.appendSelect('line').style('stroke', 'white').style('stroke-width', .7).attr('x1', 10).attr('x2', 10).attr('y1', 7).attr('y1', props.spike_height).attr('marker-end', 'url(#arrow-up)').attr('marker-start', 'url(#arrow-down)');
+      keySvg.appendSelect('line').style('stroke', 'white').style('stroke-width', 0.7).attr('x1', 10).attr('x2', 10).attr('y1', 7).attr('y1', props.spike_height).attr('marker-end', 'url(#arrow-up)').attr('marker-start', 'url(#arrow-down)');
       var bottomKeyText = keySvgContainer.appendSelect('div.bottom-text').style('padding-left', "".concat(keyGap * 0.4, "px"));
       bottomKeyText.appendSelect('p.red-text.key-text.text-inline').style('width', "".concat(keyGap * 0.8, "px")).html(props.key.text.red_peak);
       bottomKeyText.appendSelect('p.orange-text.key-text.text-inline').style('width', "".concat(keyGap * 0.8, "px")).html(props.key.text.orange_peak);
@@ -1036,7 +1036,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         context.fillStyle = props.map_fill;
         context.fill();
         var activeWidth = width / useWidth * props.refBox.width;
-        var activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region').style('width', "".concat(activeWidth, "px")).style('height', "".concat(props.refBox.height, "px")).call(d3.drag().on('start.interrupt', function () {
+        var activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region').style('width', "".concat(activeWidth, "px")).style('height', "".concat(props.refBox.height, "px")).style('left', "".concat(props.refBox.width / 2 - activeWidth / 2, "px")).call(d3.drag().on('start.interrupt', function () {
           activeRegion.interrupt();
         }).on('start drag', function () {
           var calcX = d3.event.x - activeWidth / 2;
@@ -1050,7 +1050,9 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
           activeRegion.style('left', calcX + 'px');
           document.getElementById('map-container').scrollLeft = calcX / props.refBox.width * useWidth;
         }));
-        document.getElementById('map-container').addEventListener('scroll', function (d) {
+        var mapEl = document.getElementById('map-container');
+        mapEl.scrollLeft = useWidth / 2 - width / 2;
+        mapEl.addEventListener('scroll', function (d) {
           var pos = d.target.scrollLeft;
           activeRegion.style('left', pos / useWidth * props.refBox.width + 'px');
         }); // Refbox ends here

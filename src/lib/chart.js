@@ -182,7 +182,7 @@ class GlobalRateMap extends ChartComponent {
 
     keySvg.appendSelect('line')
       .style('stroke', 'white')
-      .style('stroke-width', .7)
+      .style('stroke-width', 0.7)
       .attr('x1', 10)
       .attr('x2', 10)
       .attr('y1', 7)
@@ -445,6 +445,7 @@ class GlobalRateMap extends ChartComponent {
         .style('text-align', 'center')
         .style('width', `${props.refBox.width}px`)
         .style('height', `${props.refBox.height}px`);
+      
       const refBox = refBoxContainer.appendSelect('canvas')
         .attr('width', props.refBox.width)
         .attr('height', props.refBox.height);
@@ -452,7 +453,7 @@ class GlobalRateMap extends ChartComponent {
       const context = refBox.node().getContext('2d');
 
       const projectionRef = d3.geoNaturalEarth1();
-      
+
       if (props.map_custom_projections.clip_box && (props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2)) {
         projectionRef.fitSize([props.refBox.width, props.refBox.height], makeRangeBox(props.map_custom_projections.clip_box));
       } else {
@@ -467,7 +468,7 @@ class GlobalRateMap extends ChartComponent {
       if (props.map_custom_projections.rotate && props.map_custom_projections.rotate.length === 2) {
         projectionRef.rotate(props.map_custom_projections.rotate);
       }
-      
+
       const woAntarctica = {
         type: countries.type,
         features: countries.features.filter(e => e.properties.slug !== 'antarctica'),
@@ -481,15 +482,17 @@ class GlobalRateMap extends ChartComponent {
       context.fill();
 
       const activeWidth = width / useWidth * props.refBox.width;
+
       const activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region')
         .style('width', `${activeWidth}px`)
         .style('height', `${props.refBox.height}px`)
+        .style('left', `${props.refBox.width / 2 - activeWidth / 2}px`)
         .call(d3.drag()
           .on('start.interrupt', function() {
             activeRegion.interrupt();
           })
           .on('start drag', function() {
-            let calcX = d3.event.x - (activeWidth / 2)
+            let calcX = d3.event.x - (activeWidth / 2);
             if (d3.event.x <= activeWidth / 2) {
               calcX = 0;
             } else if (d3.event.x >= (props.refBox.width - activeWidth/2)) {
@@ -499,11 +502,12 @@ class GlobalRateMap extends ChartComponent {
             document.getElementById('map-container').scrollLeft = calcX/props.refBox.width*useWidth
           }));
 
-      document.getElementById('map-container')
-        .addEventListener('scroll', function(d) {
-          const pos = (d.target.scrollLeft)
-          activeRegion.style('left', pos/useWidth*props.refBox.width + 'px');
-        });
+      const mapEl = document.getElementById('map-container')
+      mapEl.scrollLeft = useWidth / 2 - width / 2
+      mapEl.addEventListener('scroll', function(d) {
+        const pos = (d.target.scrollLeft);
+        activeRegion.style('left', pos/useWidth*props.refBox.width + 'px');
+      });
       // Refbox ends here
     } else {
       this.selection().select('.ref-box').classed('hide', true);
@@ -520,7 +524,7 @@ class GlobalRateMap extends ChartComponent {
         .style('opacity', props.spike_inactive_opacity);
 
       g.selectAll('.name-annotations,.number-annotations')
-        .style('opacity', 0)
+        .style('opacity', 0);
 
       g.selectAll(`path.centroid.${properties.slug}`)
         .style('opacity', 1)

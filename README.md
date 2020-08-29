@@ -45,7 +45,7 @@ myChart
     map_fill: '#333',
 
     // Map height
-    height: 400,
+    heightRatio: (width, breakpoint) => (width < breakpoint ? 0.8 : 0.5),
 
     // Topojson
     geo: false,
