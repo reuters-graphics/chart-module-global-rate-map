@@ -569,7 +569,7 @@ class GlobalRateMap extends ChartComponent {
 
     function getPeakText(value) {
       value = Math.round(value * 100);
-      let textVar
+      let textVar;
       if (value < 100 && value >= 1) {
         textVar = Mustache.render(props.of_peak_text, { percent: value.toLocaleString(props.locale)+'%' })
       } else if (value < 1) {
