@@ -6,6 +6,7 @@ var AtlasMetadataClient = _interopDefault(require('@reuters-graphics/graphics-at
 var d3 = require('d3');
 var merge = _interopDefault(require('lodash/merge'));
 var d3GeoVoronoi = require('d3-geo-voronoi');
+var Mustache = _interopDefault(require('mustache'));
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -732,7 +733,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       },
       interaction: true,
       at_peak_text: 'At peak',
-      of_peak_text: 'of peak'
+      of_peak_text: "<tspan> {{ percent }}</tspan> <tspan class='smaller'>of peak</tspan>"
     });
 
     return _this;
@@ -1095,14 +1096,21 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
 
       function getPeakText(value) {
         value = Math.round(value * 100);
+        var textVar;
 
         if (value < 100 && value >= 1) {
-          return "<tspan dy=\"1em\" x=\"0\">".concat(value.toLocaleString(props.locale), "%</tspan> <tspan class=\"smaller\">").concat(props.of_peak_text, "</tspan>");
+          textVar = Mustache.render(props.of_peak_text, {
+            percent: value.toLocaleString(props.locale) + '%'
+          });
         } else if (value < 1) {
-          return "<tspan dy=\"1em\" x=\"0\"><1%</tspan> <tspan class=\"smaller\">".concat(props.of_peak_text, "</tspan>");
+          textVar = Mustache.render(props.of_peak_text, {
+            percent: '<1%'
+          });
         } else if (value === 100) {
-          return "<tspan dy=\"1em\" x=\"0\">".concat(props.at_peak_text, "</tspan>");
+          textVar = "<tspan>".concat(props.at_peak_text, "</tspan>");
         }
+
+        return textVar.replace('<tspan>', '<tspan dy="1em" x="0">');
       }
 
       return this;

@@ -4,6 +4,7 @@ import AtlasMetadataClient from '@reuters-graphics/graphics-atlas-client';
 import ChartComponent from './base/ChartComponent';
 import d3 from './utils/d3';
 import { geoVoronoi } from 'd3-geo-voronoi';
+import Mustache from 'mustache';
 
 const Atlas = new AtlasMetadataClient();
 // import topology from '@reuters-graphics/graphics-atlas-client/topojson/global.110m.json';
@@ -64,7 +65,7 @@ class GlobalRateMap extends ChartComponent {
     },
     interaction: true,
     at_peak_text: 'At peak',
-    of_peak_text: 'of peak',
+    of_peak_text: "<tspan> {{ percent }}</tspan> <tspan class='smaller'>of peak</tspan>",
   };
 
   draw() {
@@ -568,13 +569,15 @@ class GlobalRateMap extends ChartComponent {
 
     function getPeakText(value) {
       value = Math.round(value * 100);
+      let textVar
       if (value < 100 && value >= 1) {
-        return `<tspan dy="1em" x="0">${value.toLocaleString(props.locale)}%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
+        textVar = Mustache.render(props.of_peak_text, { percent: value.toLocaleString(props.locale)+'%' })
       } else if (value < 1) {
-        return `<tspan dy="1em" x="0"><1%</tspan> <tspan class="smaller">${props.of_peak_text}</tspan>`
+        textVar = Mustache.render(props.of_peak_text, { percent: '<1%' })
       } else if (value === 100) {
-        return `<tspan dy="1em" x="0">${props.at_peak_text}</tspan>`
+        textVar = `<tspan>${props.at_peak_text}</tspan>`;
       }
+      return textVar.replace('<tspan>', '<tspan dy="1em" x="0">')
     }
 
     return this;
