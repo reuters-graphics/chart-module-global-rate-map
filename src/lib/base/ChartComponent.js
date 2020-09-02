@@ -2,7 +2,8 @@ import {
   ErrorDataType,
   ErrorDrawMethodUndefined,
   ErrorPropsType,
-  ErrorSelectorType
+  ErrorSelectorType,
+  ErrorTopojsonType
 } from './errorClasses';
 
 import d3 from '../utils/d3';
@@ -69,6 +70,20 @@ class ChartComponent {
     }
 
     this._data = arr;
+    return this;
+  }
+
+  /**
+   * Getter/setter for chart topojson
+   * @param  {Object} obj topology
+   */
+  topojson(obj) {
+    if (!obj) return this._topojson || {};
+    if (typeof obj !== 'object') {
+      throw new ErrorTopojsonType(this.constructor.name);
+    }
+
+    this._topojson = obj;
     return this;
   }
 

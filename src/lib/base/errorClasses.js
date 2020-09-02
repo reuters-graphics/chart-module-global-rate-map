@@ -14,6 +14,10 @@ export class ErrorSelectorType extends ChartError {
   message = `${this.constructorName} selector should be a DOM Element or selector string`
 }
 
+export class ErrorTopojsonType extends ChartError {
+  message = `${this.constructorName} topojson should be an Object`
+}
+
 export class ErrorPropsType extends ChartError {
   message = `${this.constructorName} props should be an Object`
 }

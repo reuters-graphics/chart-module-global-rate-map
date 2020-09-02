@@ -6,8 +6,8 @@ import defaultData from './defaultData.json';
 import defaultGeo from './topo.json';
 import oceania from './oceania.json';
 import europe from './europe.json';
-
 const newData = [];
+
 for (var key of Object.keys(defaultData.distributionRanks.cases)) {
   newData.push({
     key,
@@ -29,42 +29,44 @@ class ChartComponent extends React.Component {
     this.chart
       .selection(this.chartContainer.current)
       .data(newData)
+      .topojson(oceania)
       .props({
-        geo: defaultGeo,
-        // map_custom_projections: {
-        //   clip_box: [[-30, 71], [66, 34]]
-        // } 
-        // custom_center: [173.640289, 3.403072],
-        // map_custom_projections: {
-        //   center: [0, 5],
-        //   rotate: [-180, 0],
-        //   // scale: 150,
-        //   clip_box: [
-        //     [111, 2] , [225, -50]
-        //   ],
-        // },
+        map_custom_projections: {
+          projection: 'geoNaturalEarth1',
+          center: [0, 5],
+          rotate: [-180, 0],
+          clip_box: [[111, 2], [230, -50]],
+        },
+        annotations: {
+          name: ['AU', 'NZ', 'french-polynesia', 'papua-new-guinea'],
+          value: ['AU', 'NZ', 'french-polynesia', 'papua-new-guinea'],
+        },
+        mobile: false,
+        heightRatio: (width, breakpoint) => (width < breakpoint ? 0.5 : 0.4),
       })
       .draw();
 
     // Use it again.
-    // setTimeout(() => {
-    //   this.chart
-    //     .data(newData)
-    //     .props({
-    //       // geo: oceania,
-    //       map_custom_projections: {
-    //         center: [0, 5],
-    //         rotate: [-180, 0],
-    //         clip_box: [[111, 2], [225, -50]],
-    //       },
-    //       interaction: true,
-    //       annotations: {
-    //         name: ['US'],
-    //         value: ['AU'],
-    //       },
-    //     })
-    //     .draw();
-    // }, 2000);
+    setTimeout(() => {
+      this.chart
+        .data(newData)
+        .topojson(europe)
+        .props({
+          map_custom_projections: {
+            projection: 'geoNaturalEarth1',
+            center: null,
+            scale: null,
+            rotate: null,
+            clip_box: [[-30, 71], [66, 34]],
+          },
+          annotations: {
+            name: ['russia', 'spain'],
+            value: ['RU', 'ES'],
+          },
+          heightRatio: (width, breakpoint) => (width < breakpoint ? 1 : 0.7),
+        })
+        .draw();
+    }, 2000);
     // setTimeout(() => {
     //   this.chart
     //     .data([30, 50, 30])

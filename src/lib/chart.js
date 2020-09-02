@@ -18,7 +18,6 @@ class GlobalRateMap extends ChartComponent {
     map_stroke_color_active: 'rgba(255, 255, 255, 0.75)',
     spike_color: '#eec331',
     heightRatio: (width, breakpoint) => (width < breakpoint ? 0.8 : 0.5),
-    geo: false,
     locale: 'en',
     map_custom_projections: {
       clip_box: [[-130, 70], [194, -39]],
@@ -71,6 +70,8 @@ class GlobalRateMap extends ChartComponent {
   draw() {
     const data = this.data();
     const props = this.props();
+    const topo = this.topojson();
+    if (!topo) return this;
     const node = this.selection().node();
     let { width } = node.getBoundingClientRect();
     const ratio = props.heightRatio(width, props.refBox.breakpoint)
@@ -220,10 +221,11 @@ class GlobalRateMap extends ChartComponent {
     }
 
     const projection = d3[props.map_custom_projections.projection]();
-    const countries = topojson.feature(props.geo, props.geo.objects.countries);
+    console.log(projection, topo)
+    const countries = topojson.feature(topo, topo.objects.countries);
     let disputed;
-    if (props.geo.objects.disputedBoundaries) {
-      disputed = topojson.mesh(props.geo, props.geo.objects.disputedBoundaries);  
+    if (topo.objects.disputedBoundaries) {
+      disputed = topojson.mesh(topo, topo.objects.disputedBoundaries);  
     }
 
     if (props.map_custom_projections.center && props.map_custom_projections.center.length === 2) {

@@ -28,6 +28,8 @@ myChart
     'key': 'IN',
     'value': .9,
   }])
+  // Topojson object
+  .topojson(topojson)
   .props({ 
     // Stroke on the country borders
     map_stroke_width: 0.7,
@@ -46,9 +48,6 @@ myChart
 
     // Map height
     heightRatio: (width, breakpoint) => (width < breakpoint ? 0.8 : 0.5),
-
-    // Topojson
-    geo: false,
 
     // Locale for country names on hover
     locale: 'en',
@@ -94,6 +93,17 @@ myChart
       // custom rotate of the map
       rotate: null,
 
+      key: {
+        // Text for different key elements
+        text: {
+          main_text: 'How close is the current weekly average to the country’s peak',
+          red_peak: '>90%',
+          orange_peak: '90 to 75%',
+          white_peak: '<75%',
+        },
+        // Width of the key
+        width: 140,
+      },
       annotations: {
         // An array of all places (names, codes or slugs) for which you want a fixed name label
         name: ['india','RU','US'],
@@ -117,7 +127,11 @@ myChart
         // the factor that is to be used in the above function
         factor: 2.2,
       },
-    },
+      // text on map hover when at peak
+      at_peak_text: 'At peak',
+      // text on map hover when not at peak
+      of_peak_text: "<tspan> {{ percent }}</tspan> <tspan class='smaller'>of peak</tspan>",
+      },
   })
   .draw();
 

@@ -8,6 +8,22 @@ var merge = _interopDefault(require('lodash/merge'));
 var d3GeoVoronoi = require('d3-geo-voronoi');
 var Mustache = _interopDefault(require('mustache'));
 
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function (obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof = function (obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof(obj);
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -464,15 +480,15 @@ var ErrorSelectorType = /*#__PURE__*/function (_ChartError2) {
 
   return ErrorSelectorType;
 }(ChartError);
-var ErrorPropsType = /*#__PURE__*/function (_ChartError3) {
-  _inherits(ErrorPropsType, _ChartError3);
+var ErrorTopojsonType = /*#__PURE__*/function (_ChartError3) {
+  _inherits(ErrorTopojsonType, _ChartError3);
 
-  var _super4 = _createSuper(ErrorPropsType);
+  var _super4 = _createSuper(ErrorTopojsonType);
 
-  function ErrorPropsType() {
+  function ErrorTopojsonType() {
     var _this4;
 
-    _classCallCheck(this, ErrorPropsType);
+    _classCallCheck(this, ErrorTopojsonType);
 
     for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
       args[_key3] = arguments[_key3];
@@ -480,22 +496,22 @@ var ErrorPropsType = /*#__PURE__*/function (_ChartError3) {
 
     _this4 = _super4.call.apply(_super4, [this].concat(args));
 
-    _defineProperty(_assertThisInitialized(_this4), "message", "".concat(_this4.constructorName, " props should be an Object"));
+    _defineProperty(_assertThisInitialized(_this4), "message", "".concat(_this4.constructorName, " topojson should be an Object"));
 
     return _this4;
   }
 
-  return ErrorPropsType;
+  return ErrorTopojsonType;
 }(ChartError);
-var ErrorDataType = /*#__PURE__*/function (_ChartError4) {
-  _inherits(ErrorDataType, _ChartError4);
+var ErrorPropsType = /*#__PURE__*/function (_ChartError4) {
+  _inherits(ErrorPropsType, _ChartError4);
 
-  var _super5 = _createSuper(ErrorDataType);
+  var _super5 = _createSuper(ErrorPropsType);
 
-  function ErrorDataType() {
+  function ErrorPropsType() {
     var _this5;
 
-    _classCallCheck(this, ErrorDataType);
+    _classCallCheck(this, ErrorPropsType);
 
     for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
       args[_key4] = arguments[_key4];
@@ -503,9 +519,32 @@ var ErrorDataType = /*#__PURE__*/function (_ChartError4) {
 
     _this5 = _super5.call.apply(_super5, [this].concat(args));
 
-    _defineProperty(_assertThisInitialized(_this5), "message", "".concat(_this5.constructorName, " data should be an Array"));
+    _defineProperty(_assertThisInitialized(_this5), "message", "".concat(_this5.constructorName, " props should be an Object"));
 
     return _this5;
+  }
+
+  return ErrorPropsType;
+}(ChartError);
+var ErrorDataType = /*#__PURE__*/function (_ChartError5) {
+  _inherits(ErrorDataType, _ChartError5);
+
+  var _super6 = _createSuper(ErrorDataType);
+
+  function ErrorDataType() {
+    var _this6;
+
+    _classCallCheck(this, ErrorDataType);
+
+    for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+      args[_key5] = arguments[_key5];
+    }
+
+    _this6 = _super6.call.apply(_super6, [this].concat(args));
+
+    _defineProperty(_assertThisInitialized(_this6), "message", "".concat(_this6.constructorName, " data should be an Array"));
+
+    return _this6;
   }
 
   return ErrorDataType;
@@ -643,6 +682,23 @@ var ChartComponent = /*#__PURE__*/function () {
       this._data = arr;
       return this;
     }
+    /**
+     * Getter/setter for chart topojson
+     * @param  {Object} obj topology
+     */
+
+  }, {
+    key: "topojson",
+    value: function topojson(obj) {
+      if (!obj) return this._topojson || {};
+
+      if (_typeof(obj) !== 'object') {
+        throw new ErrorTopojsonType(this.constructor.name);
+      }
+
+      this._topojson = obj;
+      return this;
+    }
   }, {
     key: "draw",
     value: function draw() {
@@ -681,7 +737,6 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       heightRatio: function heightRatio(width, breakpoint) {
         return width < breakpoint ? 0.8 : 0.5;
       },
-      geo: false,
       locale: 'en',
       map_custom_projections: {
         clip_box: [[-130, 70], [194, -39]],
@@ -744,6 +799,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
     value: function draw() {
       var data = this.data();
       var props = this.props();
+      var topo = this.topojson();
+      if (!topo) return this;
       var node = this.selection().node();
 
       var _node$getBoundingClie = node.getBoundingClientRect(),
@@ -824,11 +881,12 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       }
 
       var projection = d3[props.map_custom_projections.projection]();
-      var countries = feature(props.geo, props.geo.objects.countries);
+      console.log(projection, topo);
+      var countries = feature(topo, topo.objects.countries);
       var disputed;
 
-      if (props.geo.objects.disputedBoundaries) {
-        disputed = mesh(props.geo, props.geo.objects.disputedBoundaries);
+      if (topo.objects.disputedBoundaries) {
+        disputed = mesh(topo, topo.objects.disputedBoundaries);
       }
 
       if (props.map_custom_projections.center && props.map_custom_projections.center.length === 2) {
