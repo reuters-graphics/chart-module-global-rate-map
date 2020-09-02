@@ -221,7 +221,6 @@ class GlobalRateMap extends ChartComponent {
     }
 
     const projection = d3[props.map_custom_projections.projection]();
-    console.log(projection, topo)
     const countries = topojson.feature(topo, topo.objects.countries);
     let disputed;
     if (topo.objects.disputedBoundaries) {
@@ -273,10 +272,8 @@ class GlobalRateMap extends ChartComponent {
     })));
 
     if (props.map_custom_projections.clip_box && (props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2)) {
-      console.log('clipping! :)');
       projection.fitSize([useWidth, height], makeRangeBox(props.map_custom_projections.clip_box));
     } else {
-      console.log('cant clip :(');
       projection.fitSize([useWidth, height], countries);
     }
 
