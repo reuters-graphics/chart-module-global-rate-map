@@ -1041,8 +1041,8 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       annotations.enter().append('text').attr('class', 'annotation').merge(annotations).attr('transform', function (d) {
         var p = projection(d.countryGeo.geometry.coordinates);
         return "translate(".concat(p[0], ",").concat(p[1] + props.hover_gap, ")");
-      }).text(function (d) {
-        return d.countryMeta.translations[props.locale];
+      }).html(function (d) {
+        return "<tspan x=\"0\" y=\"0\">".concat(d.countryMeta.translations[props.locale], "</tspan>");
       });
       annotations.exit().remove();
       var annotationsNumbers = g.appendSelect('g.number-annotations').style('pointer-events', 'none').selectAll('text.annotation').data(annotationNumData);
@@ -1135,7 +1135,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
           var o = projection(properties.centroid);
           return "translate(".concat(o[0], ",").concat(o[1] + props.hover_gap, ")");
         }).style('text-anchor', 'middle').html(function (d) {
-          return "\n          <tspan x=\"0\" y=\"0\">".concat(properties.translations[props.locale], "</tspan>\n          ").concat(getPeakText(value));
+          return "\n          <tspan x=\"1.5\" y=\"0\">".concat(properties.translations[props.locale], "</tspan>\n          ").concat(getPeakText(value));
         });
         g.selectAll(".country.c-".concat(properties.slug)).classed('active', true);
       }

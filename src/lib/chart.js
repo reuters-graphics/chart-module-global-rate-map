@@ -409,8 +409,8 @@ class GlobalRateMap extends ChartComponent {
         const p = projection(d.countryGeo.geometry.coordinates);
         return `translate(${p[0]},${p[1] + props.hover_gap})`;
       })
-      .text((d) => {
-        return d.countryMeta.translations[props.locale];
+      .html((d) => {
+        return `<tspan x="0" y="0">${d.countryMeta.translations[props.locale]}</tspan>`;
       });
 
     annotations.exit()
@@ -541,7 +541,7 @@ class GlobalRateMap extends ChartComponent {
         })
         .style('text-anchor', 'middle')
         .html(d => `
-          <tspan x="0" y="0">${properties.translations[props.locale]}</tspan>
+          <tspan x="1.5" y="0">${properties.translations[props.locale]}</tspan>
           ${getPeakText(value)}`);
 
       g.selectAll(`.country.c-${properties.slug}`)

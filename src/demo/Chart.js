@@ -47,26 +47,26 @@ class ChartComponent extends React.Component {
       .draw();
 
     // Use it again.
-    setTimeout(() => {
-      this.chart
-        .data(newData)
-        .topojson(europe)
-        .props({
-          map_custom_projections: {
-            projection: 'geoNaturalEarth1',
-            center: null,
-            scale: null,
-            rotate: null,
-            clip_box: [[-30, 71], [66, 34]],
-          },
-          annotations: {
-            name: ['russia', 'spain'],
-            value: ['RU', 'ES'],
-          },
-          heightRatio: (width, breakpoint) => (width < breakpoint ? 1 : 0.7),
-        })
-        .draw();
-    }, 2000);
+    // setTimeout(() => {
+    //   this.chart
+    //     .data(newData)
+    //     .topojson(europe)
+    //     .props({
+    //       map_custom_projections: {
+    //         projection: 'geoNaturalEarth1',
+    //         center: null,
+    //         scale: null,
+    //         rotate: null,
+    //         clip_box: [[-30, 71], [66, 34]],
+    //       },
+    //       annotations: {
+    //         name: ['russia', 'spain'],
+    //         value: ['RU', 'ES'],
+    //       },
+    //       heightRatio: (width, breakpoint) => (width < breakpoint ? 1 : 0.7),
+    //     })
+    //     .draw();
+    // }, 2000);
     // setTimeout(() => {
     //   this.chart
     //     .data([30, 50, 30])
