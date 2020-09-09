@@ -1070,11 +1070,12 @@
     eslint-plugin-react-hooks "*"
     eslint-plugin-standard "*"
 
-"@reuters-graphics/graphics-atlas-client@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@reuters-graphics/graphics-atlas-client/-/graphics-atlas-client-0.0.6.tgz#8b8ff5991864525aed6f4feb4f89de6ca6ae4716"
-  integrity sha512-LWDizGxDFL1LVm69WHydTTtfKl84SBFrap2VQAowfN13BVXvOvp9rZhFmHhITN4SeA85F9NUbtJpTQiZp6eFvA==
+"@reuters-graphics/graphics-atlas-client@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@reuters-graphics/graphics-atlas-client/-/graphics-atlas-client-0.4.0.tgz#5ae4d3ee5835e22afabb1f5953f5e81f286e2485"
+  integrity sha512-VsAwAxq8hbhaJXULWNiGyl3PAMPmn4yMrXVx26xzzfw8NsPjYEwRWP0KzWHsfNE7gapJpYO5+e+fpH9gbkiEmQ==
   dependencies:
+    cross-fetch "^3.0.5"
     lodash "^4.17.15"
 
 "@reuters-graphics/style-color@^1.0.0":
@@ -2248,6 +2249,13 @@ cross-fetch@3.0.4:
   dependencies:
     node-fetch "2.6.0"
     whatwg-fetch "3.0.0"
+
+cross-fetch@^3.0.5:
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.5.tgz#2739d2981892e7ab488a7ad03b92df2816e03f4c"
+  integrity sha512-FFLcLtraisj5eteosnX1gf01qYDCOc4fDy0+euOt8Kn9YBY2NtXL/pCoYPavw24NIQkQqm5ZOLsGD5Zzj0gyew==
+  dependencies:
+    node-fetch "2.6.0"
 
 cross-spawn@^6.0.5:
   version "6.0.5"

@@ -29,18 +29,18 @@ class ChartComponent extends React.Component {
     this.chart
       .selection(this.chartContainer.current)
       .data(newData)
-      .topojson(oceania)
+      .topojson(defaultGeo)
       .props({
-        map_custom_projections: {
-          projection: 'geoNaturalEarth1',
-          center: [0, 5],
-          rotate: [-180, 0],
-          clip_box: [[111, 2], [230, -50]],
-        },
-        annotations: {
-          name: ['AU', 'NZ', 'french-polynesia', 'papua-new-guinea'],
-          value: ['AU', 'NZ', 'french-polynesia', 'papua-new-guinea'],
-        },
+        // map_custom_projections: {
+        //   projection: 'geoNaturalEarth1',
+        //   center: [0, 5],
+        //   rotate: [-180, 0],
+        //   clip_box: [[111, 2], [230, -50]],
+        // },
+        // annotations: {
+        //   name: ['AU', 'NZ', 'french-polynesia', 'papua-new-guinea'],
+        //   value: ['AU', 'NZ', 'french-polynesia', 'papua-new-guinea'],
+        // },
         mobile: false,
         heightRatio: (width, breakpoint) => (width < breakpoint ? 0.5 : 0.4),
       })
