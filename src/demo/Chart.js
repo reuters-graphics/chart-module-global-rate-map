@@ -31,6 +31,7 @@ class ChartComponent extends React.Component {
       .data(newData)
       .topojson(defaultGeo)
       .props({
+        locale: 'ja',
         // map_custom_projections: {
         //   projection: 'geoNaturalEarth1',
         //   center: [0, 5],

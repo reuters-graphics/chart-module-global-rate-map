@@ -1,12 +1,38 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var AtlasMetadataClient = _interopDefault(require('@reuters-graphics/graphics-atlas-client'));
+var AtlasMetadataClient = require('@reuters-graphics/graphics-atlas-client');
 var d3 = require('d3');
-var merge = _interopDefault(require('lodash/merge'));
+var merge = require('lodash/merge');
 var d3GeoVoronoi = require('d3-geo-voronoi');
-var Mustache = _interopDefault(require('mustache'));
+var Mustache = require('mustache');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+function _interopNamespace(e) {
+  if (e && e.__esModule) { return e; } else {
+    var n = Object.create(null);
+    if (e) {
+      Object.keys(e).forEach(function (k) {
+        if (k !== 'default') {
+          var d = Object.getOwnPropertyDescriptor(e, k);
+          Object.defineProperty(n, k, d.get ? d : {
+            enumerable: true,
+            get: function () {
+              return e[k];
+            }
+          });
+        }
+      });
+    }
+    n['default'] = e;
+    return Object.freeze(n);
+  }
+}
+
+var AtlasMetadataClient__default = /*#__PURE__*/_interopDefaultLegacy(AtlasMetadataClient);
+var d3__namespace = /*#__PURE__*/_interopNamespace(d3);
+var merge__default = /*#__PURE__*/_interopDefaultLegacy(merge);
+var Mustache__default = /*#__PURE__*/_interopDefaultLegacy(Mustache);
 
 function _typeof(obj) {
   "@babel/helpers - typeof";
@@ -635,7 +661,7 @@ var ChartComponent = /*#__PURE__*/function () {
         throw new ErrorSelectorType(this.constructor.name);
       }
 
-      this._selection = d3.select(selector);
+      this._selection = d3__namespace.select(selector);
       return this;
     }
     /**
@@ -657,7 +683,7 @@ var ChartComponent = /*#__PURE__*/function () {
         throw new ErrorPropsType(this.constructor.name);
       }
 
-      this._props = merge(this._props || this.defaultProps, obj);
+      this._props = merge__default['default'](this._props || this.defaultProps, obj);
       return this;
     }
     /**
@@ -709,7 +735,7 @@ var ChartComponent = /*#__PURE__*/function () {
   return ChartComponent;
 }();
 
-var Atlas = new AtlasMetadataClient(); // import topology from '@reuters-graphics/graphics-atlas-client/topojson/global.110m.json';
+var Atlas = new AtlasMetadataClient__default['default'](); // import topology from '@reuters-graphics/graphics-atlas-client/topojson/global.110m.json';
 
 var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
   _inherits(GlobalRateMap, _ChartComponent);
@@ -757,9 +783,9 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       spike_stroke_width: 0.5,
       spike_highlight_stroke_width: 2,
       spike_highlight_fill: true,
-      spike_color_scale: d3.scaleThreshold() // Can use a scale as a prop!
+      spike_color_scale: d3__namespace.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9]).range(['#ccc', '#f68e26', '#de2d26']),
-      spike_stroke_width_scale: d3.scaleThreshold() // Can use a scale as a prop!
+      spike_stroke_width_scale: d3__namespace.scaleThreshold() // Can use a scale as a prop!
       .domain([0.75, 0.9]).range([0.6, 0.9, 1.1]),
       spike_inactive_opacity: 1,
       disputed_dasharray: [5, 3],
@@ -788,7 +814,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       },
       interaction: true,
       at_peak_text: 'At peak',
-      of_peak_text: "<tspan> {{ percent }}</tspan> <tspan class='smaller'>of peak</tspan>"
+      of_peak_text: "<tspan class='break'> {{ percent }}</tspan> <tspan class='smaller'>of peak</tspan>"
     });
 
     return _this;
@@ -826,7 +852,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       var filteredData = data.filter(function (d) {
         return d.value >= filterMin && d.value <= filterMax;
       });
-      var scaleY = d3.scaleLinear().range([0, props.spike_height]).domain([0, 1]);
+      var scaleY = d3__namespace.scaleLinear().range([0, props.spike_height]).domain([0, 1]);
       var keyBox = this.selection().appendSelect('div.key');
       keyBox.appendSelect('p.left-text.text-inline.key-text').html(props.key.text.main_text);
       var keySvgContainer = keyBox.appendSelect('div.svg-container.text-inline');
@@ -876,11 +902,11 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
       .attr('width', useWidth).attr('height', height);
       var g = svg.appendSelect('g');
 
-      if (!d3[props.map_custom_projections.projection]) {
+      if (!d3__namespace[props.map_custom_projections.projection]) {
         props.map_custom_projections.projection = 'geoNaturalEarth1';
       }
 
-      var projection = d3[props.map_custom_projections.projection]();
+      var projection = d3__namespace[props.map_custom_projections.projection]();
       var countries = feature(topo, topo.objects.countries);
       var disputed;
 
@@ -950,7 +976,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         projection.scale(props.map_custom_projections.scale);
       }
 
-      var path = d3.geoPath().projection(projection);
+      var path = d3__namespace.geoPath().projection(projection);
       svg.selectAll('.country,.disputed,.centroid').remove();
       var countryGroups = g.appendSelect('g.countries').style('pointer-events', 'none').style('fill', props.map_fill).selectAll('path.country').data(countries.features.filter(function (d) {
         return d.properties.slug !== 'antarctica';
@@ -1059,7 +1085,7 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var refBoxContainer = this.selection().appendSelect('div.ref-box').classed('hide', false).style('text-align', 'center').style('width', "".concat(props.refBox.width, "px")).style('height', "".concat(props.refBox.height, "px"));
         var refBox = refBoxContainer.appendSelect('canvas').attr('width', props.refBox.width).attr('height', props.refBox.height);
         var context = refBox.node().getContext('2d');
-        var projectionRef = d3.geoNaturalEarth1();
+        var projectionRef = d3__namespace.geoNaturalEarth1();
 
         if (props.map_custom_projections.clip_box && props.map_custom_projections.clip_box.length === 2 && props.map_custom_projections.clip_box[0].length === 2 && props.map_custom_projections.clip_box[1].length === 2) {
           projectionRef.fitSize([props.refBox.width, props.refBox.height], makeRangeBox(props.map_custom_projections.clip_box));
@@ -1085,21 +1111,21 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
             return e.properties.slug !== 'antarctica';
           })
         };
-        var pathRef = d3.geoPath(projectionRef, context);
+        var pathRef = d3__namespace.geoPath(projectionRef, context);
         context.clearRect(0, 0, props.refBox.width, props.refBox.height);
         context.beginPath();
         pathRef(woAntarctica);
         context.fillStyle = props.map_fill;
         context.fill();
         var activeWidth = width / useWidth * props.refBox.width;
-        var activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region').style('width', "".concat(activeWidth, "px")).style('height', "".concat(props.refBox.height, "px")).style('left', "".concat(props.refBox.width / 2 - activeWidth / 2, "px")).call(d3.drag().on('start.interrupt', function () {
+        var activeRegion = refBoxContainer.appendSelect('div').attr('class', 'active-region').style('width', "".concat(activeWidth, "px")).style('height', "".concat(props.refBox.height, "px")).style('left', "".concat(props.refBox.width / 2 - activeWidth / 2, "px")).call(d3__namespace.drag().on('start.interrupt', function () {
           activeRegion.interrupt();
         }).on('start drag', function () {
-          var calcX = d3.event.x - activeWidth / 2;
+          var calcX = d3__namespace.event.x - activeWidth / 2;
 
-          if (d3.event.x <= activeWidth / 2) {
+          if (d3__namespace.event.x <= activeWidth / 2) {
             calcX = 0;
-          } else if (d3.event.x >= props.refBox.width - activeWidth / 2) {
+          } else if (d3__namespace.event.x >= props.refBox.width - activeWidth / 2) {
             calcX = props.refBox.width - activeWidth;
           }
 
@@ -1154,18 +1180,18 @@ var GlobalRateMap = /*#__PURE__*/function (_ChartComponent) {
         var textVar;
 
         if (value < 100 && value >= 1) {
-          textVar = Mustache.render(props.of_peak_text, {
+          textVar = Mustache__default['default'].render(props.of_peak_text, {
             percent: value.toLocaleString(props.locale) + '%'
           });
         } else if (value < 1) {
-          textVar = Mustache.render(props.of_peak_text, {
+          textVar = Mustache__default['default'].render(props.of_peak_text, {
             percent: '<1%'
           });
         } else if (value === 100) {
           textVar = "<tspan>".concat(props.at_peak_text, "</tspan>");
         }
 
-        return textVar.replace('<tspan>', '<tspan dy="1em" x="0">');
+        return textVar.replace("<tspan class='break'>", '<tspan dy="1em" x="0">').replace("<tspan class='break smaller'>", '<tspan class="smaller" dy="1em" x="0">').replace('<tspan>', '<tspan dy="1em" x="0">');
       }
 
       return this;

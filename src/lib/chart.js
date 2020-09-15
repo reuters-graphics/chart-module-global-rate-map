@@ -64,7 +64,7 @@ class GlobalRateMap extends ChartComponent {
     },
     interaction: true,
     at_peak_text: 'At peak',
-    of_peak_text: "<tspan> {{ percent }}</tspan> <tspan class='smaller'>of peak</tspan>",
+    of_peak_text: "<tspan class='break'> {{ percent }}</tspan> <tspan class='smaller'>of peak</tspan>",
   };
 
   draw() {
@@ -576,7 +576,7 @@ class GlobalRateMap extends ChartComponent {
       } else if (value === 100) {
         textVar = `<tspan>${props.at_peak_text}</tspan>`;
       }
-      return textVar.replace('<tspan>', '<tspan dy="1em" x="0">')
+      return textVar.replace("<tspan class='break'>", '<tspan dy="1em" x="0">').replace("<tspan class='break smaller'>", '<tspan class="smaller" dy="1em" x="0">').replace('<tspan>', '<tspan dy="1em" x="0">');
     }
 
     return this;
